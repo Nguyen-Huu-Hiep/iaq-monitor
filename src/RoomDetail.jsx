@@ -10,7 +10,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "./App.css";
-import { formatDate, getAqiColor, METRICS } from "./utils";
+import { formatDate, getMetricColor, METRICS } from "./utils";
 import { useQueryParam } from "./useQueryParam";
 import Header from "./Header";
 
@@ -52,7 +52,9 @@ function RoomDetail({ roomId, items, onBack }) {
     plugins: { legend: { display: false } },
     scales: {
       x: { ticks: { maxTicksLimit: 6, maxRotation: 0 } },
-      y: { ticks: { callback: (v) => `${v}${metricMeta?.unit ?? ""}` } },
+      y: {
+        ticks: { callback: (v) => `${+v.toFixed(1)}${metricMeta?.unit ?? ""}` },
+      },
     },
   };
 
@@ -83,11 +85,9 @@ function RoomDetail({ roomId, items, onBack }) {
               className={`metric-card clickable${
                 activeMetric === key ? " active" : ""
               }`}
-              style={
-                key === "aqi"
-                  ? { backgroundColor: getAqiColor(latest.aqi) }
-                  : {}
-              }
+              style={{
+                backgroundColor: getMetricColor(key, latest[key]) ?? "#1e1e2e",
+              }}
               onClick={() => setActiveMetric(key)}
             >
               <div className="metric-label">{label}</div>

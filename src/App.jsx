@@ -33,8 +33,8 @@ function App() {
               style={{ backgroundColor: getAqiColor(latestAqi) }}
             >
               <h3>Room {roomId}</h3>
-              <div className="aqi-value">{latestAqi ?? "N/A"}</div>
               <div className="aqi-label">AQI</div>
+              <div className="aqi-value">{latestAqi ?? "N/A"}</div>
             </div>
           );
         })}
