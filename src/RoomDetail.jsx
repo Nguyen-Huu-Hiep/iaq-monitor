@@ -20,7 +20,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   Tooltip,
-  Filler
+  Filler,
 );
 
 function RoomDetail({ roomId, items, onBack }) {
@@ -51,7 +51,7 @@ function RoomDetail({ roomId, items, onBack }) {
     responsive: true,
     plugins: { legend: { display: false } },
     scales: {
-      x: { ticks: { maxTicksLimit: 6, maxRotation: 0 } },
+      x: { ticks: { maxTicksLimit: 6 } },
       y: {
         ticks: { callback: (v) => `${+v.toFixed(1)}${metricMeta?.unit ?? ""}` },
       },
@@ -59,54 +59,51 @@ function RoomDetail({ roomId, items, onBack }) {
   };
 
   return (
-    <div className="app">
-      <Header />
-      <div className="detail">
-        <button
-          className="back-btn"
-          onClick={() => {
-            onBack();
-            setActiveMetric(null);
-          }}
-        >
-          ← Dashboard
-        </button>
-        <div className="detail-header">
-          <h2>Room {roomId}</h2>
-        </div>
-        <p className="detail-time">
-          {latest.created_at ? formatDate(latest.created_at) : "N/A"}
-        </p>
+    <div className="detail">
+      <button
+        className="back-btn"
+        onClick={() => {
+          onBack();
+          setActiveMetric(null);
+        }}
+      >
+        ← Dashboard
+      </button>
+      <div className="detail-header">
+        <h2>Room {roomId}</h2>
+      </div>
+      <p className="detail-time">
+        {latest.created_at ? formatDate(latest.created_at) : "N/A"}
+      </p>
 
-        <div className="metric-grid">
-          {METRICS.map(({ key, label, unit }) => (
-            <div
-              key={key}
-              className={`metric-card clickable${
-                activeMetric === key ? " active" : ""
-              }`}
-              style={{
-                backgroundColor: getMetricColor(key, latest[key]) ?? "#1e1e2e",
-              }}
-              onClick={() => setActiveMetric(key)}
-            >
-              <div className="metric-label">{label}</div>
-              <div className="metric-value">
-                {latest[key] ?? "N/A"}
-                {latest[key] != null && unit && (
-                  <span className="metric-unit"> {unit}</span>
-                )}
-              </div>
+      <div className="metric-grid">
+        {METRICS.map(({ key, label, unit }) => (
+          <div
+            key={key}
+            className={`metric-card clickable${
+              activeMetric === key ? " active" : ""
+            }`}
+            style={{
+              backgroundColor: getMetricColor(key, latest[key]) ?? "#1e1e2e",
+            }}
+            onClick={() => setActiveMetric(key)}
+          >
+            <div className="metric-label">{label}</div>
+            <div className="metric-value">
+              {latest[key] ?? "N/A"}
+              {latest[key] != null && unit && (
+                <span className="metric-unit"> {unit}</span>
+              )}
             </div>
-          ))}
-        </div>
-
-        <div className="chart-container">
-          <div className="chart-title">
-            {metricMeta?.label} {metricMeta?.unit}
           </div>
-          <Line data={chartData} options={chartOptions} />
+        ))}
+      </div>
+
+      <div className="chart-container">
+        <div className="chart-title">
+          {metricMeta?.label} {metricMeta?.unit}
         </div>
+        <Line data={chartData} options={chartOptions} />
       </div>
     </div>
   );

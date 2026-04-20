@@ -19,6 +19,9 @@ function normalizeRow(row) {
 
 export default function useSensorData() {
   const [dataByRoom, setDataByRoom] = useState({});
+  const [refreshKey, setRefreshKey] = useState(false);
+
+  const refetch = () => setRefreshKey((prev) => !prev);
 
   useEffect(() => {
     let mounted = true;
@@ -75,7 +78,7 @@ export default function useSensorData() {
               [room]: [row, ...current].slice(0, MAX_POINTS),
             };
           });
-        }
+        },
       )
       .subscribe((status) => {
         console.log("Realtime status:", status);
@@ -85,7 +88,7 @@ export default function useSensorData() {
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refreshKey]);
 
-  return dataByRoom;
+  return { dataByRoom, refetch };
 }
