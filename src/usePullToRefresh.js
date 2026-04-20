@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const THRESHOLD = 300;
+const THRESHOLD = 80;
 const FADEOUT_DELAY = 300;
 
 export default function usePullToRefresh(onRefresh) {
