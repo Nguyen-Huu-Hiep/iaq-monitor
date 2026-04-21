@@ -28,9 +28,8 @@ export default function useSensorData() {
 
     async function fetchInitial() {
       const { data, error } = await supabase
-        .from("sensor_data")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from("sensor_data_latest_30")
+        .select("*");
 
       if (error) {
         console.error("Fetch error:", error);
