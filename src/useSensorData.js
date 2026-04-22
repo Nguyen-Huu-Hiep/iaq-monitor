@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-const MAX_POINTS = 30;
+const MAX_POINTS = 1;
 
 function normalizeRow(row) {
   return {
@@ -14,6 +14,7 @@ function normalizeRow(row) {
     aqi: row.aqi,
     status: row.status,
     created_at: row.created_at,
+    in_active: row.in_active,
   };
 }
 
@@ -28,7 +29,7 @@ export default function useSensorData() {
 
     async function fetchInitial() {
       const { data, error } = await supabase
-        .from("sensor_data_latest_30")
+        .from("sensor_data_one_row_latest")
         .select("*");
 
       if (error) {

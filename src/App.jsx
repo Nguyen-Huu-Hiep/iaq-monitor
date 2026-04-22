@@ -1,10 +1,11 @@
+import { useState } from "react";
 import "./App.css";
-import useSensorData from "./useSensorData";
-import usePullToRefresh from "./usePullToRefresh";
-import { getAqiColor } from "./utils";
-import RoomDetail from "./RoomDetail";
-import { useQueryParam } from "./useQueryParam";
 import Header from "./Header";
+import RoomDetail from "./RoomDetail";
+import usePullToRefresh from "./usePullToRefresh";
+import { useQueryParam } from "./useQueryParam";
+import useSensorData from "./useSensorData";
+import { getAqiColor } from "./utils";
 
 function App() {
   const { dataByRoom, refetch } = useSensorData();
@@ -22,7 +23,7 @@ function App() {
       {selectedRoom ? (
         <RoomDetail
           roomId={selectedRoom}
-          items={dataByRoom[selectedRoom]}
+          items={dataByRoom[selectedRoom] ?? []}
           onBack={() => setSelectedRoom(null)}
         />
       ) : (
@@ -34,7 +35,9 @@ function App() {
                 key={roomId}
                 className="room-card"
                 onClick={() => setSelectedRoom(roomId)}
-                style={{ backgroundColor: getAqiColor(latestAqi) }}
+                style={{
+                  backgroundColor: getAqiColor(latestAqi, items[0]?.in_active),
+                }}
               >
                 <h3>Room {roomId}</h3>
                 <div className="aqi-label">AQI</div>

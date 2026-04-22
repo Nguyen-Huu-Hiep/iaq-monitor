@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 export function useQueryParam(key, defaultValue = null) {
   const [value, setValue] = useState(
-    () => new URLSearchParams(window.location.search).get(key) ?? defaultValue
+    () => new URLSearchParams(window.location.search).get(key) ?? defaultValue,
   );
 
   const set = (newValue) => {
@@ -16,7 +16,7 @@ export function useQueryParam(key, defaultValue = null) {
     window.history.pushState(
       {},
       "",
-      search ? `?${search}` : window.location.pathname
+      search ? `?${search}` : window.location.pathname,
     );
     setValue(newValue);
   };
@@ -24,7 +24,7 @@ export function useQueryParam(key, defaultValue = null) {
   useEffect(() => {
     const onPop = () => {
       setValue(
-        new URLSearchParams(window.location.search).get(key) ?? defaultValue
+        new URLSearchParams(window.location.search).get(key) ?? defaultValue,
       );
     };
     window.addEventListener("popstate", onPop);

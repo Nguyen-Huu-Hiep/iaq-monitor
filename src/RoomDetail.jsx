@@ -1,17 +1,17 @@
 import {
-  Chart as ChartJS,
   CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
+  Chart as ChartJS,
   Filler,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "./App.css";
-import { formatDate, getMetricColor, METRICS } from "./utils";
+import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
-import Header from "./Header";
+import { formatDate, getMetricColor, METRICS } from "./utils";
 
 ChartJS.register(
   CategoryScale,
@@ -22,13 +22,31 @@ ChartJS.register(
   Filler,
 );
 
+const TIME_RANGES = [
+  { label: "1h", hours: 1 },
+  { label: "24h", hours: 24 },
+];
+
 function RoomDetail({ roomId, items, onBack }) {
   const latest = items?.[0] ?? {};
+  const inActive = items?.[0]?.in_active;
   const [activeMetric, setActiveMetric] = useQueryParam("details", "aqi");
+  const [timeRange, setTimeRange] = useQueryParam("range", "1");
 
-  const reversed = [...(items ?? [])].reverse();
-  const labels = reversed.map((d) => formatDate(d.created_at));
-  const values = reversed.map((d) => d[activeMetric] ?? null);
+  const hours = parseInt(timeRange, 10) || 1;
+  const {
+    data: chartItems,
+    loading,
+    refetch,
+  } = useChartData({
+    roomId,
+    hours,
+    inActive: inActive ?? false,
+    ready: items != null && items.length > 0,
+  });
+
+  const labels = chartItems.map((d) => formatDate(d.created_at));
+  const values = chartItems.map((d) => d[activeMetric] ?? null);
 
   const metricMeta = METRICS.find((m) => m.key === activeMetric);
 
@@ -64,6 +82,7 @@ function RoomDetail({ roomId, items, onBack }) {
         onClick={() => {
           onBack();
           setActiveMetric(null);
+          setTimeRange(null);
         }}
       >
         ← Dashboard
@@ -72,16 +91,14 @@ function RoomDetail({ roomId, items, onBack }) {
         <h2>Room {roomId}</h2>
       </div>
       <p className="detail-time">
-        {latest.created_at ? formatDate(latest.created_at) : "N/A"}
+        {latest.created_at ? formatDate(latest.created_at, true) : "N/A"}
       </p>
 
       <div className="metric-grid">
         {METRICS.map(({ key, label, unit }) => (
           <div
             key={key}
-            className={`metric-card clickable${
-              activeMetric === key ? " active" : ""
-            }`}
+            className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
             style={{
               backgroundColor: getMetricColor(key, latest[key]) ?? "#1e1e2e",
             }}
@@ -99,10 +116,54 @@ function RoomDetail({ roomId, items, onBack }) {
       </div>
 
       <div className="chart-container">
-        <div className="chart-title">
-          {metricMeta?.label} {metricMeta?.unit}
+        <div className="chart-header">
+          <div className="chart-title">
+            {metricMeta?.label} {metricMeta?.unit}
+          </div>
+          <div className="time-range-selector">
+            {TIME_RANGES.map(({ label, hours: h }) => (
+              <button
+                key={label}
+                className={`time-range-btn${hours === h ? " active" : ""}`}
+                onClick={() => setTimeRange(String(h))}
+                disabled={loading}
+              >
+                {label}
+              </button>
+            ))}
+            <button
+              className="time-range-btn"
+              onClick={refetch}
+              disabled={loading}
+              title={loading ? "Getting new data" : "Reload chart"}
+            >
+              {loading ? "⏳" : "↻"}
+            </button>
+          </div>
         </div>
-        <Line data={chartData} options={chartOptions} />
+        {inActive ? (
+          <div className="no-data">
+            <div className="no-data-icon">📭</div>
+            <div>No data to show!</div>
+          </div>
+        ) : loading ? (
+          <div className="chart-loading">
+            <div className="chart-skeleton-bars">
+              {Array.from({ length: 30 }, (_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    height: `${30 + Math.sin(i * 0.8) * 25 + Math.cos(i * 0.4) * 20}%`,
+                    animationDelay: `${(i * 0.05) % 0.6}s`,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="chart-skeleton-axis" />
+          </div>
+        ) : (
+          <Line data={chartData} options={chartOptions} />
+        )}
       </div>
     </div>
   );

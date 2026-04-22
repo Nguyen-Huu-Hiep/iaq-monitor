@@ -5,6 +5,8 @@
     color: #e0e0e0;
     font-family: "Segoe UI", sans-serif;
     padding: 32px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
 /* Header */
@@ -67,6 +69,10 @@
     font-size: 1rem;
     color: #333;
     margin-top: 2px;
+}
+
+.room-card-stale {
+    background-color: #1e1e2e;
 }
 
 /* Detail view */
@@ -304,4 +310,104 @@
         opacity: 0;
         top: 0;
     }
+}
+
+/* Time range selector */
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.time-range-selector {
+    display: flex;
+    gap: 6px;
+}
+
+.time-range-btn {
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: #2a2a3e;
+    color: #aaa;
+    font-size: 0.8rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.time-range-btn:hover {
+    background: #33334a;
+    color: #fff;
+}
+
+.time-range-btn.active {
+    background: #4f9cf9;
+    color: #fff;
+    border-color: #4f9cf9;
+}
+
+.chart-loading {
+    text-align: center;
+    color: #666;
+    padding: 2rem 0;
+    font-size: 0.85rem;
+}
+
+/* Chart skeleton loading */
+.chart-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 1rem 0;
+}
+
+.chart-skeleton-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 120px;
+}
+
+.chart-skeleton-bars span {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(90deg, #2a2a3e 25%, #33334a 50%, #2a2a3e 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.chart-skeleton-axis {
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #2a2a3e 25%, #33334a 50%, #2a2a3e 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+/* No data */
+.no-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 3rem 1rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.no-data-icon {
+    font-size: 2rem;
+    opacity: 0.4;
 }
