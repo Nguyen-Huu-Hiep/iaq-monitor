@@ -21,6 +21,7 @@ function normalizeRow(row) {
 export default function useSensorData() {
   const [dataByRoom, setDataByRoom] = useState({});
   const [refreshKey, setRefreshKey] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const refetch = () => setRefreshKey((prev) => !prev);
 
@@ -52,6 +53,7 @@ export default function useSensorData() {
 
       if (mounted) {
         setDataByRoom(grouped);
+        setLoading(false);
       }
     }
 
@@ -90,5 +92,5 @@ export default function useSensorData() {
     };
   }, [refreshKey]);
 
-  return { dataByRoom, refetch };
+  return { dataByRoom, refetch, loading };
 }

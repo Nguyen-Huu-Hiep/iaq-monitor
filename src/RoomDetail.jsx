@@ -126,7 +126,6 @@ function RoomDetail({ roomId, items, onBack }) {
                 key={label}
                 className={`time-range-btn${hours === h ? " active" : ""}`}
                 onClick={() => setTimeRange(String(h))}
-                disabled={loading}
               >
                 {label}
               </button>
