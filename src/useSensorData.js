@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-const MAX_POINTS = 1;
-
 function normalizeRow(row) {
   return {
     id: row.id,
@@ -29,7 +27,8 @@ export default function useSensorData() {
   useEffect(() => {
     let mounted = true;
 
-    async function fetchInitial() {
+    async function fetchInitial(retried = false) {
+      setErr(false);
       setLoading(true);
       const { data, error } = await supabase
         .from("sensor_data_one_row_latest")
@@ -37,22 +36,29 @@ export default function useSensorData() {
 
       if (error) {
         console.error("Fetch error:", error);
-        setErr(true);
-        setLoading(false);
+        if (!retried) {
+          setTimeout(() => {
+            console.error("Retry fetch data after 2s");
+            fetchInitial(true);
+          }, 2000);
+          return;
+        }
+
+        if (mounted) {
+          setErr(true);
+          setLoading(false);
+        }
         return;
       }
 
       const grouped = {};
 
-      for (const item of data) {
+      for (const item of data || []) {
         const row = normalizeRow(item);
         const room = row.room_id;
 
         if (!grouped[room]) grouped[room] = [];
-
-        if (grouped[room].length < MAX_POINTS) {
-          grouped[room].push(row);
-        }
+        grouped[room].push(row);
       }
 
       if (mounted) {
@@ -77,11 +83,9 @@ export default function useSensorData() {
 
           setDataByRoom((prev) => {
             const room = row.room_id;
-            const current = prev[room] ?? [];
-
             return {
               ...prev,
-              [room]: [row, ...current].slice(0, MAX_POINTS),
+              [room]: [row],
             };
           });
         },
