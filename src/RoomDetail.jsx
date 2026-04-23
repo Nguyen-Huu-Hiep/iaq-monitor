@@ -47,7 +47,7 @@ function RoomDetail({ roomId, items, onBack }) {
   } = useChartData({
     roomId,
     hours,
-    inActive: inActive ?? false,
+    inActive: inActive,
     ready: items != null && items.length > 0,
   });
 
@@ -93,6 +93,7 @@ function RoomDetail({ roomId, items, onBack }) {
           </div>
         );
       case loading:
+      case items == null || items.length === 0:
         return (
           <div className="chart-loading">
             <div className="chart-skeleton-bars">
@@ -126,7 +127,7 @@ function RoomDetail({ roomId, items, onBack }) {
           setTimeRange(null);
         }}
       >
-        ← Dashboard
+        ← Back
       </button>
       <div className="detail-header">
         <h2>Room {roomId}</h2>

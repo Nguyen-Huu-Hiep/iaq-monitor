@@ -488,3 +488,21 @@
 .reload-btn:hover {
     background: #2a2a3e;
 }
+
+/* Status toast */
+.status-toast {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 999;
+    pointer-events: none;
+}

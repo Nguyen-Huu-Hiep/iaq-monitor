@@ -21,6 +21,7 @@ export default function useSensorData() {
   const [refreshKey, setRefreshKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setErr] = useState(false);
+  const [statusMsg, setStatusMsg] = useState(null);
 
   const channelRef = useRef(null);
 
@@ -30,26 +31,31 @@ export default function useSensorData() {
   };
 
   const retryRef = useRef(0);
-  const MAX_RETRY = 5;
+  const MAX_RETRY = 3;
   const reconnectingRef = useRef(false);
 
   function reconnectChannel() {
     if (reconnectingRef.current) return;
     if (retryRef.current >= MAX_RETRY) {
-      console.warn("❌ Realtime reconnect stopped after 5 attempts");
+      setStatusMsg("Realtime failed!. Please reload the page.");
       return;
     }
     reconnectingRef.current = true;
     retryRef.current += 1;
-    console.log(`🔁 Reconnect attempt ${retryRef.current}/${MAX_RETRY}`);
+    setStatusMsg(
+      `Realtime failed, reconnecting attempt ${retryRef.current}/${MAX_RETRY}.`,
+    );
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
-    setTimeout(() => {
-      channelRef.current = createChannel();
-      reconnectingRef.current = false;
-    }, 2000);
+    setTimeout(
+      () => {
+        channelRef.current = createChannel();
+        reconnectingRef.current = false;
+      },
+      (retryRef.current + 1) * 1000,
+    );
   }
 
   function createChannel() {
@@ -75,18 +81,23 @@ export default function useSensorData() {
         },
       )
       .subscribe((status) => {
-        console.log("Channel status:", status);
+        if (status === "SUBSCRIBED") {
+          setStatusMsg(null);
+        }
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.log("Realtime → reconnect");
           reconnectChannel();
         }
       });
   }
 
+  const fetchRetryRef = useRef(0);
+  const MAX_FETCH_RETRY = 3;
+
   useEffect(() => {
     let mounted = true;
+    fetchRetryRef.current = 0;
 
-    async function fetchInitial(retried = false) {
+    async function fetchInitial() {
       setErr(false);
       setLoading(true);
       const { data, error } = await supabase
@@ -94,16 +105,20 @@ export default function useSensorData() {
         .select("*");
 
       if (error) {
-        console.error("Fetch error:", error);
-        if (!retried) {
+        if (fetchRetryRef.current < MAX_FETCH_RETRY) {
+          fetchRetryRef.current += 1;
+          if (mounted)
+            setStatusMsg(
+              `Fetch data failed, retrying attempt ${fetchRetryRef.current}/${MAX_FETCH_RETRY}.`,
+            );
           setTimeout(() => {
-            console.error("Retry fetch data after 2s");
-            fetchInitial(true);
+            if (mounted) fetchInitial();
           }, 2000);
           return;
         }
 
         if (mounted) {
+          setStatusMsg(null);
           setErr(true);
           setLoading(false);
         }
@@ -123,6 +138,11 @@ export default function useSensorData() {
       if (mounted) {
         setDataByRoom(grouped);
         setLoading(false);
+        setStatusMsg(null);
+        // start realtime after fetch completes
+        if (!channelRef.current) {
+          channelRef.current = createChannel();
+        }
       }
     }
 
@@ -130,18 +150,12 @@ export default function useSensorData() {
 
     return () => {
       mounted = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [refreshKey]);
 
-  useEffect(() => {
-    channelRef.current = createChannel();
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
-  }, []);
-
-  return { dataByRoom, refetch, loading, error };
+  return { dataByRoom, refetch, loading, error, statusMsg };
 }

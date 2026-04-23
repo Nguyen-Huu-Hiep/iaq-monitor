@@ -8,7 +8,7 @@ import useSensorData from "./useSensorData";
 import { getAqiColor } from "./utils";
 
 function App() {
-  const { dataByRoom, refetch, loading, error } = useSensorData();
+  const { dataByRoom, refetch, loading, error, statusMsg } = useSensorData();
   const [selectedRoom, setSelectedRoom] = useQueryParam("room");
   const { visible, fading } = usePullToRefresh(refetch);
 
@@ -80,6 +80,7 @@ function App() {
         </div>
       )}
       <Header />
+      {statusMsg && <div className="status-toast">{statusMsg}</div>}
       {renderContent()}
     </div>
   );

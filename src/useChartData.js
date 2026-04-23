@@ -61,13 +61,18 @@ export default function useChartData({ roomId, hours, inActive, ready }) {
   const [refetchTrigger, setRefetchTrigger] = useState(false);
 
   const refetch = () => {
+    if (!ready || loading) return;
     cache.delete(getCacheKey(roomId, hours));
     inflight.delete(getCacheKey(roomId, hours));
     setRefetchTrigger((prev) => !prev);
   };
 
   useEffect(() => {
-    if (!roomId || !ready || inActive) return;
+    if (!roomId || !ready || inActive) {
+      setError(false);
+      setLoading(false);
+      return;
+    }
 
     const key = getCacheKey(roomId, hours);
     const hit = cache.get(key);
