@@ -505,4 +505,7 @@
     font-size: 0.85rem;
     z-index: 999;
     pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
