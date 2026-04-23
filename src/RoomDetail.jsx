@@ -9,6 +9,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "./App.css";
+import ErrorState from "./components/ErrorState";
 import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
 import { formatDate, getMetricColor, METRICS } from "./utils";
@@ -41,6 +42,7 @@ function RoomDetail({ roomId, items, onBack }) {
   const {
     data: chartItems,
     loading,
+    error: chartError,
     refetch,
   } = useChartData({
     roomId,
@@ -78,6 +80,39 @@ function RoomDetail({ roomId, items, onBack }) {
       },
     },
   };
+
+  function renderChart() {
+    switch (true) {
+      case inActive:
+        return (
+          <div className="no-data">
+            <div className="no-data-icon">📭</div>
+            <div>No data to show!</div>
+          </div>
+        );
+      case loading:
+        return (
+          <div className="chart-loading">
+            <div className="chart-skeleton-bars">
+              {Array.from({ length: 30 }, (_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    height: `${30 + Math.sin(i * 0.8) * 25 + Math.cos(i * 0.4) * 20}%`,
+                    animationDelay: `${(i * 0.05) % 0.6}s`,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="chart-skeleton-axis" />
+          </div>
+        );
+      case chartError:
+        return <ErrorState compact onRetry={refetch} />;
+      default:
+        return <Line data={chartData} options={chartOptions} />;
+    }
+  }
 
   return (
     <div className="detail">
@@ -144,29 +179,7 @@ function RoomDetail({ roomId, items, onBack }) {
             </button>
           </div>
         </div>
-        {inActive ? (
-          <div className="no-data">
-            <div className="no-data-icon">📭</div>
-            <div>No data to show!</div>
-          </div>
-        ) : loading ? (
-          <div className="chart-loading">
-            <div className="chart-skeleton-bars">
-              {Array.from({ length: 30 }, (_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    height: `${30 + Math.sin(i * 0.8) * 25 + Math.cos(i * 0.4) * 20}%`,
-                    animationDelay: `${(i * 0.05) % 0.6}s`,
-                  }}
-                />
-              ))}
-            </div>
-            <div className="chart-skeleton-axis" />
-          </div>
-        ) : (
-          <Line data={chartData} options={chartOptions} />
-        )}
+        {renderChart()}
       </div>
     </div>
   );

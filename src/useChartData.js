@@ -49,7 +49,6 @@ function fetchSlots(roomId, hours, maxPoints) {
 
 export default function useChartData({ roomId, hours, inActive, ready }) {
   const MAX_POINTS = hours === 1 ? MAX_POINTS_1H : MAX_POINTS_24H;
-  const slotMsRef = useRef((hours * 60 * 60 * 1000) / MAX_POINTS);
 
   const [data, setData] = useState(
     () => cache.get(getCacheKey(roomId, hours))?.data ?? [],
@@ -58,6 +57,7 @@ export default function useChartData({ roomId, hours, inActive, ready }) {
     const hit = cache.get(getCacheKey(roomId, hours));
     return !(hit && Date.now() - hit.timestamp < CACHE_TTL_MS);
   });
+  const [error, setError] = useState(false);
   const [refetchTrigger, setRefetchTrigger] = useState(false);
 
   const refetch = () => {
@@ -81,20 +81,27 @@ export default function useChartData({ roomId, hours, inActive, ready }) {
 
     let mounted = true;
     setLoading(true);
-    slotMsRef.current = (hours * 60 * 60 * 1000) / MAX_POINTS;
+    setError(false);
 
-    fetchSlots(roomId, hours, MAX_POINTS).then((result) => {
-      cache.set(key, { data: result, timestamp: Date.now() });
-      if (mounted) {
-        setData(result);
-        setLoading(false);
-      }
-    });
+    fetchSlots(roomId, hours, MAX_POINTS)
+      .then((result) => {
+        cache.set(key, { data: result, timestamp: Date.now() });
+        if (mounted) {
+          setData(result);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setError(true);
+          setLoading(false);
+        }
+      });
 
     return () => {
       mounted = false;
     };
   }, [roomId, hours, inActive, ready, refetchTrigger]);
 
-  return { data, loading, refetch };
+  return { data, loading, error, refetch };
 }

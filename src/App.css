@@ -448,3 +448,43 @@
     width: 50%;
     height: 32px;
 }
+
+/* Error state */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 24px;
+    color: #aaa;
+}
+
+.error-state--compact {
+    padding: 32px 24px;
+}
+
+.error-icon {
+    font-size: 2.5rem;
+}
+
+.error-message {
+    font-size: 1rem;
+    color: #888;
+}
+
+.reload-btn {
+    margin-top: 4px;
+    padding: 8px 20px;
+    background: #1e1e2e;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.reload-btn:hover {
+    background: #2a2a3e;
+}

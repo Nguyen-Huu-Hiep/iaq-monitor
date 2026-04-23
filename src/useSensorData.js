@@ -22,6 +22,7 @@ export default function useSensorData() {
   const [dataByRoom, setDataByRoom] = useState({});
   const [refreshKey, setRefreshKey] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setErr] = useState(false);
 
   const refetch = () => setRefreshKey((prev) => !prev);
 
@@ -29,12 +30,15 @@ export default function useSensorData() {
     let mounted = true;
 
     async function fetchInitial() {
+      setLoading(true);
       const { data, error } = await supabase
         .from("sensor_data_one_row_latest")
         .select("*");
 
       if (error) {
         console.error("Fetch error:", error);
+        setErr(true);
+        setLoading(false);
         return;
       }
 
@@ -92,5 +96,5 @@ export default function useSensorData() {
     };
   }, [refreshKey]);
 
-  return { dataByRoom, refetch, loading };
+  return { dataByRoom, refetch, loading, error };
 }
