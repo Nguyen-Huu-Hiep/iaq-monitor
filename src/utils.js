@@ -1,13 +1,25 @@
 /**
  * Format ISO timestamp to "DD/MM/YYYY HH:mm:ss"
  */
-export function formatDate(isoString, seconds = false) {
+export function formatDate(isoString, options = {}) {
+  const { seconds = false, compact = false, shortYear = false } = options;
+
   if (!isoString) return "—";
   const d = new Date(isoString);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}${seconds ? `:${pad(d.getSeconds())}` : ""}`;
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const maybePad = (n) => (compact ? String(n) : pad2(n));
+
+  const day = maybePad(d.getDate());
+  const month = maybePad(d.getMonth() + 1);
+
+  const year = shortYear
+    ? String(d.getFullYear()).slice(-2)
+    : d.getFullYear();
+
+  return `${day}/${month}/${year} ${pad2(d.getHours())}:${pad2(
+    d.getMinutes(),
+  )}${seconds ? `:${pad2(d.getSeconds())}` : ""}`;
 }
 
 export function getAqiColor(aqi, inActive = false) {

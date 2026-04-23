@@ -51,7 +51,9 @@ function RoomDetail({ roomId, items, onBack }) {
     ready: items != null && items.length > 0,
   });
 
-  const labels = chartItems.map((d) => formatDate(d.created_at));
+  const labels = chartItems.map((d) =>
+    formatDate(d.created_at, { compact: true, shortYear: true }),
+  );
   const values = chartItems.map((d) => d[activeMetric] ?? null);
 
   const metricMeta = METRICS.find((m) => m.key === activeMetric);
@@ -74,7 +76,7 @@ function RoomDetail({ roomId, items, onBack }) {
     responsive: true,
     plugins: { legend: { display: false } },
     scales: {
-      x: { ticks: { maxTicksLimit: 6 } },
+      x: { ticks: { maxTicksLimit: window.innerWidth > 768 ? 6 : 3 } },
       y: {
         ticks: { callback: (v) => `${+v.toFixed(1)}${metricMeta?.unit ?? ""}` },
       },
@@ -130,7 +132,9 @@ function RoomDetail({ roomId, items, onBack }) {
         <h2>Room {roomId}</h2>
       </div>
       <p className="detail-time">
-        {latest.created_at ? formatDate(latest.created_at, true) : "N/A"}
+        {latest.created_at
+          ? formatDate(latest.created_at, { seconds: true })
+          : "N/A"}
       </p>
 
       <div className="metric-grid">
