@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 
-export function useQueryParam(key, defaultValue = null) {
+export function useQueryParam(
+  key,
+  defaultValue = null,
+  { replace = false } = {},
+) {
   const [value, setValue] = useState(
     () => new URLSearchParams(window.location.search).get(key) ?? defaultValue,
   );
 
-  const set = (newValue) => {
+  const set = (newValue, opts = {}) => {
     const params = new URLSearchParams(window.location.search);
     if (newValue == null) {
       params.delete(key);
@@ -13,11 +17,12 @@ export function useQueryParam(key, defaultValue = null) {
       params.set(key, newValue);
     }
     const search = params.toString();
-    window.history.pushState(
-      {},
-      "",
-      search ? `?${search}` : window.location.pathname,
-    );
+    const url = search ? `?${search}` : window.location.pathname;
+    if (opts.replace ?? replace) {
+      window.history.replaceState({}, "", url);
+    } else {
+      window.history.pushState({}, "", url);
+    }
     setValue(newValue);
   };
 

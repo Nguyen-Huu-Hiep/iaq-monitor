@@ -27,7 +27,7 @@ function App() {
         />
       ) : loading ? (
         <div className="card-grid">
-          {Array.from({ length: 6 }, (_, i) => (
+          {Array.from({ length: 18 }, (_, i) => (
             <div key={i} className="room-card room-card-skeleton">
               <div className="skeleton-line skeleton-title" />
               <div className="skeleton-line skeleton-label" />

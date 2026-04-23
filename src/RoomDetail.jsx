@@ -30,8 +30,12 @@ const TIME_RANGES = [
 function RoomDetail({ roomId, items, onBack }) {
   const latest = items?.[0] ?? {};
   const inActive = items?.[0]?.in_active;
-  const [activeMetric, setActiveMetric] = useQueryParam("details", "aqi");
-  const [timeRange, setTimeRange] = useQueryParam("range", "1");
+  const [activeMetric, setActiveMetric] = useQueryParam("details", "aqi", {
+    replace: true,
+  });
+  const [timeRange, setTimeRange] = useQueryParam("range", "1", {
+    replace: true,
+  });
 
   const hours = parseInt(timeRange, 10) || 1;
   const {
