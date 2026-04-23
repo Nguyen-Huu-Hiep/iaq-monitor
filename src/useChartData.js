@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-const MAX_POINTS_24H = 96;
+const MAX_POINTS_24H = 72;
 const MAX_POINTS_1H = 60;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -50,9 +50,11 @@ function fetchSlots(roomId, hours, maxPoints) {
 export default function useChartData({ roomId, hours, inActive, ready }) {
   const MAX_POINTS = hours === 1 ? MAX_POINTS_1H : MAX_POINTS_24H;
 
-  const [data, setData] = useState(
-    () => cache.get(getCacheKey(roomId, hours))?.data ?? [],
-  );
+  const [data, setData] = useState(() => {
+    const hit = cache.get(getCacheKey(roomId, hours));
+    return hit?.data ?? [];
+  });
+
   const [loading, setLoading] = useState(() => {
     const hit = cache.get(getCacheKey(roomId, hours));
     return !(hit && Date.now() - hit.timestamp < CACHE_TTL_MS);
@@ -74,28 +76,26 @@ export default function useChartData({ roomId, hours, inActive, ready }) {
     const fresh = hit && Date.now() - hit.timestamp < CACHE_TTL_MS;
 
     if (fresh) {
-      setData(hit.data);
-      setLoading(false);
       return;
     }
 
     let mounted = true;
-    setLoading(true);
-    setError(false);
 
     fetchSlots(roomId, hours, MAX_POINTS)
       .then((result) => {
         cache.set(key, { data: result, timestamp: Date.now() });
         if (mounted) {
           setData(result);
-          setLoading(false);
+          setError(false);
         }
       })
       .catch(() => {
         if (mounted) {
           setError(true);
-          setLoading(false);
         }
+      })
+      .finally(() => {
+        setLoading(false);
       });
 
     return () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
 
 function normalizeRow(row) {
@@ -21,50 +21,67 @@ export default function useSensorData() {
   const [refreshKey, setRefreshKey] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setErr] = useState(false);
-
+  const inflightRef = useRef(null);
   const refetch = () => setRefreshKey((prev) => !prev);
 
   useEffect(() => {
     let mounted = true;
 
     async function fetchInitial(retried = false) {
-      setErr(false);
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("sensor_data_one_row_latest")
-        .select("*");
+      if (inflightRef.current) return inflightRef.current;
 
-      if (error) {
-        console.error("Fetch error:", error);
-        if (!retried) {
-          setTimeout(() => {
-            console.error("Retry fetch data after 2s");
-            fetchInitial(true);
-          }, 2000);
+      const promise = (async () => {
+        setErr(false);
+        setLoading(true);
+
+        const { data, error } = await supabase
+          .from("sensor_data_one_row_latest")
+          .select("*");
+
+        if (error) {
+          console.error("Fetch error:", error);
+          inflightRef.current = null;
+          if (!retried) {
+            setTimeout(() => {
+              console.error("Retry fetch data after 2s");
+              fetchInitial(true);
+            }, 2000);
+            return;
+          }
+
+          if (mounted) {
+            setErr(true);
+            setLoading(false);
+          }
           return;
         }
 
+        const grouped = {};
+
+        for (const item of data || []) {
+          const row = normalizeRow(item);
+          const room = row.room_id;
+
+          if (!grouped[room]) grouped[room] = [];
+          grouped[room].push(row);
+        }
+
         if (mounted) {
-          setErr(true);
+          setDataByRoom(grouped);
           setLoading(false);
         }
-        return;
-      }
+      })();
 
-      const grouped = {};
+      inflightRef.current = promise;
 
-      for (const item of data || []) {
-        const row = normalizeRow(item);
-        const room = row.room_id;
+      promise.finally(() => {
+        inflightRef.current = null;
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
-        if (!grouped[room]) grouped[room] = [];
-        grouped[room].push(row);
-      }
-
-      if (mounted) {
-        setDataByRoom(grouped);
-        setLoading(false);
-      }
+      return promise;
     }
 
     fetchInitial();
