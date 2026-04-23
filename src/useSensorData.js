@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
 
 function normalizeRow(row) {
@@ -22,10 +22,66 @@ export default function useSensorData() {
   const [loading, setLoading] = useState(true);
   const [error, setErr] = useState(false);
 
+  const channelRef = useRef(null);
+
   const refetch = () => {
     if (loading) return;
     setRefreshKey((prev) => !prev);
   };
+
+  const retryRef = useRef(0);
+  const MAX_RETRY = 5;
+  const reconnectingRef = useRef(false);
+
+  function reconnectChannel() {
+    if (reconnectingRef.current) return;
+    if (retryRef.current >= MAX_RETRY) {
+      console.warn("❌ Realtime reconnect stopped after 5 attempts");
+      return;
+    }
+    reconnectingRef.current = true;
+    retryRef.current += 1;
+    console.log(`🔁 Reconnect attempt ${retryRef.current}/${MAX_RETRY}`);
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    setTimeout(() => {
+      channelRef.current = createChannel();
+      reconnectingRef.current = false;
+    }, 2000);
+  }
+
+  function createChannel() {
+    return supabase
+      .channel("sensor_data_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sensor_data",
+        },
+        (payload) => {
+          const row = normalizeRow(payload.new);
+
+          setDataByRoom((prev) => {
+            const room = row.room_id;
+            return {
+              ...prev,
+              [room]: [row],
+            };
+          });
+        },
+      )
+      .subscribe((status) => {
+        console.log("Channel status:", status);
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.log("Realtime → reconnect");
+          reconnectChannel();
+        }
+      });
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -72,36 +128,20 @@ export default function useSensorData() {
 
     fetchInitial();
 
-    const channel = supabase
-      .channel("sensor_data_realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "sensor_data",
-        },
-        (payload) => {
-          const row = normalizeRow(payload.new);
-
-          setDataByRoom((prev) => {
-            const room = row.room_id;
-            return {
-              ...prev,
-              [room]: [row],
-            };
-          });
-        },
-      )
-      .subscribe((status) => {
-        console.log("Realtime status:", status);
-      });
-
     return () => {
       mounted = false;
-      supabase.removeChannel(channel);
     };
   }, [refreshKey]);
+
+  useEffect(() => {
+    channelRef.current = createChannel();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
 
   return { dataByRoom, refetch, loading, error };
 }
