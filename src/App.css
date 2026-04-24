@@ -11,6 +11,7 @@
 
 /* Header */
 .header {
+    position: relative;
     text-align: center;
     margin-bottom: 40px;
 }
@@ -509,4 +510,54 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Realtime status dot */
+.realtime-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.realtime-dot--connected {
+    background: #00ff08;
+    box-shadow: 0 0 6px #4caf50;
+    animation: pulse-green 2s infinite;
+}
+
+.realtime-dot--connecting {
+    background: #ffee00;
+    animation: pulse-orange 2s infinite;
+}
+
+.realtime-dot--error {
+    background: #f44336;
+    box-shadow: 0 0 6px #f44336;
+}
+
+@keyframes pulse-green {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes pulse-orange {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
