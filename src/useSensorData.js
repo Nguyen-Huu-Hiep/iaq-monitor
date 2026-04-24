@@ -22,6 +22,7 @@ export default function useSensorData() {
   const [loading, setLoading] = useState(true);
   const [error, setErr] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
+  const [realtimeStatus, setRealtimeStatus] = useState("connecting"); // "connecting" | "connected" | "error"
 
   const channelRef = useRef(null);
 
@@ -38,10 +39,12 @@ export default function useSensorData() {
     if (reconnectingRef.current) return;
     if (retryRef.current >= MAX_RETRY) {
       setStatusMsg("Realtime failed!. Please reload the page.");
+      setRealtimeStatus("error");
       return;
     }
     reconnectingRef.current = true;
     retryRef.current += 1;
+    setRealtimeStatus("connecting");
     setStatusMsg(
       `Realtime failed, reconnecting attempt ${retryRef.current}/${MAX_RETRY}.`,
     );
@@ -82,9 +85,12 @@ export default function useSensorData() {
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
+          setRealtimeStatus("connected");
+          retryRef.current = 0;
           setStatusMsg(null);
         }
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setRealtimeStatus("connecting");
           reconnectChannel();
         }
       });
@@ -96,6 +102,9 @@ export default function useSensorData() {
   useEffect(() => {
     let mounted = true;
     fetchRetryRef.current = 0;
+    retryRef.current = 0;
+    reconnectingRef.current = false;
+    setRealtimeStatus("connecting");
 
     async function fetchInitial() {
       setErr(false);
@@ -157,5 +166,5 @@ export default function useSensorData() {
     };
   }, [refreshKey]);
 
-  return { dataByRoom, refetch, loading, error, statusMsg };
+  return { dataByRoom, refetch, loading, error, statusMsg, realtimeStatus };
 }
