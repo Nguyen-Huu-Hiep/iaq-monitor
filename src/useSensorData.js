@@ -1,20 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
-
-function normalizeRow(row) {
-  return {
-    id: row.id,
-    room_id: row.room_id,
-    temperature: row.temperature,
-    humidity: row.humidity,
-    pm25: row.pm25,
-    co: row.co,
-    aqi: row.aqi,
-    status: row.status,
-    created_at: row.created_at,
-    in_active: row.in_active,
-  };
-}
+import { TABLES, DB_KEYS, REALTIME_CONFIG, FETCH_CONFIG } from "./config";
 
 export default function useSensorData() {
   const [dataByRoom, setDataByRoom] = useState({});
@@ -25,6 +11,7 @@ export default function useSensorData() {
   const [realtimeStatus, setRealtimeStatus] = useState("connecting"); // "connecting" | "connected" | "error"
 
   const channelRef = useRef(null);
+  const realtimeRoomsRef = useRef(new Set());
 
   const refetch = () => {
     if (loading) return;
@@ -32,7 +19,7 @@ export default function useSensorData() {
   };
 
   const retryRef = useRef(0);
-  const MAX_RETRY = 3;
+  const MAX_RETRY = REALTIME_CONFIG.MAX_RETRY;
   const reconnectingRef = useRef(false);
 
   function reconnectChannel() {
@@ -63,22 +50,23 @@ export default function useSensorData() {
 
   function createChannel() {
     return supabase
-      .channel("sensor_data_realtime")
+      .channel(REALTIME_CONFIG.CHANNEL_NAME)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
-          table: "sensor_data",
+          table: TABLES.ALL_DATA,
         },
         (payload) => {
-          const row = normalizeRow(payload.new);
+          const row = withInactive(payload.new);
 
           setDataByRoom((prev) => {
-            const room = row.room_id;
+            const room = row[DB_KEYS.ROOM_ID];
+            realtimeRoomsRef.current.add(room);
             return {
               ...prev,
-              [room]: [row],
+              [room]: row,
             };
           });
         },
@@ -97,7 +85,14 @@ export default function useSensorData() {
   }
 
   const fetchRetryRef = useRef(0);
-  const MAX_FETCH_RETRY = 3;
+  const MAX_FETCH_RETRY = FETCH_CONFIG.MAX_RETRY;
+
+  function withInactive(row) {
+    const updateAt = new Date(row[DB_KEYS.UPDATED_AT]);
+    const inactive =
+      Date.now() - updateAt.getTime() > REALTIME_CONFIG.INACTIVE_THRESHOLD_MS;
+    return { ...row, [DB_KEYS.IN_ACTIVE]: inactive };
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -105,13 +100,17 @@ export default function useSensorData() {
     retryRef.current = 0;
     reconnectingRef.current = false;
     setRealtimeStatus("connecting");
+    realtimeRoomsRef.current.clear();
+
+    // start realtime immediately, parallel with fetch
+    if (!channelRef.current) {
+      channelRef.current = createChannel();
+    }
 
     async function fetchInitial() {
       setErr(false);
       setLoading(true);
-      const { data, error } = await supabase
-        .from("sensor_data_one_row_latest")
-        .select("*");
+      const { data, error } = await supabase.from(TABLES.LIST_ONE).select("*");
 
       if (error) {
         if (fetchRetryRef.current < MAX_FETCH_RETRY) {
@@ -122,7 +121,7 @@ export default function useSensorData() {
             );
           setTimeout(() => {
             if (mounted) fetchInitial();
-          }, 2000);
+          }, FETCH_CONFIG.RETRY_DELAY_MS);
           return;
         }
 
@@ -137,21 +136,19 @@ export default function useSensorData() {
       const grouped = {};
 
       for (const item of data || []) {
-        const row = normalizeRow(item);
-        const room = row.room_id;
+        const row = withInactive(item);
+        const room = row[DB_KEYS.ROOM_ID];
 
-        if (!grouped[room]) grouped[room] = [];
-        grouped[room].push(row);
+        // skip if realtime already set this room
+        if (realtimeRoomsRef.current.has(room)) continue;
+
+        grouped[room] = row;
       }
 
       if (mounted) {
         setDataByRoom(grouped);
         setLoading(false);
         setStatusMsg(null);
-        // start realtime after fetch completes
-        if (!channelRef.current) {
-          channelRef.current = createChannel();
-        }
       }
     }
 

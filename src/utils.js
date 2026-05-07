@@ -13,9 +13,7 @@ export function formatDate(isoString, options = {}) {
   const day = maybePad(d.getDate());
   const month = maybePad(d.getMonth() + 1);
 
-  const year = shortYear
-    ? String(d.getFullYear()).slice(-2)
-    : d.getFullYear();
+  const year = shortYear ? String(d.getFullYear()).slice(-2) : d.getFullYear();
 
   return `${day}/${month}/${year} ${pad2(d.getHours())}:${pad2(
     d.getMinutes(),
@@ -75,27 +73,61 @@ export function getCoColor(v) {
   return "rgb(143,63,151)";
 }
 
+// PM1 / PM10 (µg/m³) — dùng thang tương tự PM2.5
+export function getPmColor(v) {
+  if (v == null) return null;
+  if (v <= 12) return "rgb(0,228,0)";
+  if (v <= 35) return "rgb(255,255,0)";
+  if (v <= 55) return "rgb(255,126,0)";
+  if (v <= 150) return "rgb(255,0,0)";
+  if (v <= 250) return "rgb(143,63,151)";
+  return "rgb(126,0,35)";
+}
+
+// TVOC (ppb)
+export function getTvocColor(v) {
+  if (v == null) return null;
+  if (v <= 220) return "rgb(0,228,0)";
+  if (v <= 660) return "rgb(255,255,0)";
+  if (v <= 2200) return "rgb(255,126,0)";
+  if (v <= 5500) return "rgb(255,0,0)";
+  return "rgb(143,63,151)";
+}
+
+// eCO2 (ppm)
+export function getEco2Color(v) {
+  if (v == null) return null;
+  if (v <= 600) return "rgb(0,228,0)";
+  if (v <= 1000) return "rgb(255,255,0)";
+  if (v <= 2500) return "rgb(255,126,0)";
+  if (v <= 5000) return "rgb(255,0,0)";
+  return "rgb(143,63,151)";
+}
+
+import { DB_KEYS, METRICS } from "./config";
+
+export { METRICS };
+
 export function getMetricColor(key, value) {
   switch (key) {
-    case "aqi":
+    case DB_KEYS.AQI:
       return getAqiColor(value);
-    case "temperature":
+    case DB_KEYS.TEMPERATURE:
       return getTemperatureColor(value);
-    case "humidity":
+    case DB_KEYS.HUMIDITY:
       return getHumidityColor(value);
-    case "pm25":
+    case DB_KEYS.PM2_5:
       return getPm25Color(value);
-    case "co":
+    case DB_KEYS.PM1:
+    case DB_KEYS.PM10:
+      return getPmColor(value);
+    case DB_KEYS.TVOC:
+      return getTvocColor(value);
+    case DB_KEYS.ECO2:
+      return getEco2Color(value);
+    case DB_KEYS.CO:
       return getCoColor(value);
     default:
       return null;
   }
 }
-
-export const METRICS = [
-  { key: "aqi", label: "AQI", unit: null },
-  { key: "temperature", label: "Temperature", unit: "°C" },
-  { key: "humidity", label: "Humidity", unit: "%" },
-  { key: "pm25", label: "PM2.5", unit: "µg/m³" },
-  { key: "co", label: "CO", unit: "ppm" },
-];

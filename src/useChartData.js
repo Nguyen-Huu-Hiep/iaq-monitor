@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import { TABLES, CHART_CONFIG } from "./config";
 
-const MAX_POINTS_24H = 72;
-const MAX_POINTS_1H = 60;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_POINTS_24H = CHART_CONFIG.MAX_POINTS_24H;
+const MAX_POINTS_1H = CHART_CONFIG.MAX_POINTS_1H;
+const CACHE_TTL_MS = CHART_CONFIG.CACHE_TTL_MS;
 
 const cache = new Map();
 // Lưu promise đang chạy để tránh fetch trùng khi mount lại giữa chừng
@@ -24,7 +25,7 @@ function fetchSlots(roomId, hours, maxPoints) {
     const slotEnd = new Date(Date.now() - i * slotMs).toISOString();
     const slotStart = new Date(Date.now() - (i + 1) * slotMs).toISOString();
     return supabase
-      .from("sensor_data")
+      .from(TABLES.ALL_DATA)
       .select("*")
       .eq("room_id", roomId)
       .gte("created_at", slotStart)

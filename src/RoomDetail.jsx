@@ -13,6 +13,7 @@ import ErrorState from "./components/ErrorState";
 import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
 import { formatDate, getMetricColor, METRICS } from "./utils";
+import { DB_KEYS } from "./config";
 
 ChartJS.register(
   CategoryScale,
@@ -28,12 +29,15 @@ const TIME_RANGES = [
   { label: "24h", hours: 24 },
 ];
 
-function RoomDetail({ roomId, items, onBack }) {
-  const latest = items?.[0] ?? {};
-  const inActive = items?.[0]?.in_active;
-  const [activeMetric, setActiveMetric] = useQueryParam("details", "aqi", {
-    replace: true,
-  });
+function RoomDetail({ roomId, item, onBack }) {
+  const inActive = item?.[DB_KEYS.IN_ACTIVE];
+  const [activeMetric, setActiveMetric] = useQueryParam(
+    "details",
+    DB_KEYS.AQI,
+    {
+      replace: true,
+    },
+  );
   const [timeRange, setTimeRange] = useQueryParam("range", "1", {
     replace: true,
   });
@@ -48,11 +52,11 @@ function RoomDetail({ roomId, items, onBack }) {
     roomId,
     hours,
     inActive: inActive,
-    ready: items != null && items.length > 0,
+    ready: item != null,
   });
 
   const labels = chartItems.map((d) =>
-    formatDate(d.created_at, { compact: true, shortYear: true }),
+    formatDate(d[DB_KEYS.CREATED_AT], { compact: true, shortYear: true }),
   );
   const values = chartItems.map((d) => d[activeMetric] ?? null);
 
@@ -93,7 +97,7 @@ function RoomDetail({ roomId, items, onBack }) {
           </div>
         );
       case loading:
-      case items == null || items.length === 0:
+      case item == null:
         return (
           <div className="chart-loading">
             <div className="chart-skeleton-bars">
@@ -133,30 +137,42 @@ function RoomDetail({ roomId, items, onBack }) {
         <h2>Room {roomId}</h2>
       </div>
       <p className="detail-time">
-        {latest.created_at
-          ? formatDate(latest.created_at, { seconds: true })
+        {item?.[DB_KEYS.CREATED_AT]
+          ? formatDate(item?.[DB_KEYS.CREATED_AT], { seconds: true })
           : "N/A"}
       </p>
 
       <div className="metric-grid">
-        {METRICS.map(({ key, label, unit }) => (
-          <div
-            key={key}
-            className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
-            style={{
-              backgroundColor: getMetricColor(key, latest[key]) ?? "#1e1e2e",
-            }}
-            onClick={() => setActiveMetric(key)}
-          >
-            <div className="metric-label">{label}</div>
-            <div className="metric-value">
-              {latest[key] ?? "N/A"}
-              {latest[key] != null && unit && (
-                <span className="metric-unit"> {unit}</span>
-              )}
-            </div>
-          </div>
-        ))}
+        {item == null
+          ? Array.from({ length: METRICS.length }, (_, i) => (
+              <div key={i} className="room-card room-card-skeleton">
+                <div className="skeleton-line skeleton-title" />
+                <div className="skeleton-line skeleton-value" />
+              </div>
+            ))
+          : METRICS.sort((a, b) => {
+              const aNull = item?.[a.key] == null ? 1 : 0;
+              const bNull = item?.[b.key] == null ? 1 : 0;
+              return aNull - bNull;
+            }).map(({ key, label, unit }) => (
+              <div
+                key={key}
+                className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
+                style={{
+                  backgroundColor:
+                    getMetricColor(key, item?.[key]) ?? "#1e1e2e",
+                }}
+                onClick={() => setActiveMetric(key)}
+              >
+                <div className="metric-label">{label}</div>
+                <div className="metric-value">
+                  {item?.[key] ?? "N/A"}
+                  {item?.[key] != null && unit && (
+                    <span className="metric-unit"> {unit}</span>
+                  )}
+                </div>
+              </div>
+            ))}
       </div>
 
       <div className="chart-container">

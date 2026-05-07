@@ -1,4 +1,5 @@
 import "./App.css";
+import { DB_KEYS } from "./config";
 import ErrorState from "./components/ErrorState";
 import Header from "./Header";
 import RoomDetail from "./RoomDetail";
@@ -18,7 +19,7 @@ function App() {
       return (
         <RoomDetail
           roomId={selectedRoom}
-          items={dataByRoom[selectedRoom] ?? []}
+          item={dataByRoom[selectedRoom] ?? null}
           onBack={() => setSelectedRoom(null)}
         />
       );
@@ -44,12 +45,12 @@ function App() {
           <div className="card-grid">
             {Object.entries(dataByRoom)
               .sort(([, a], [, b]) => {
-                const aInactive = a[0]?.in_active ? 1 : 0;
-                const bInactive = b[0]?.in_active ? 1 : 0;
+                const aInactive = a?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
+                const bInactive = b?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
                 return aInactive - bInactive;
               })
               .map(([roomId, items]) => {
-                const latestAqi = items[0]?.aqi ?? null;
+                const latestAqi = items?.[DB_KEYS.AQI] ?? null;
                 return (
                   <div
                     key={roomId}
@@ -58,7 +59,7 @@ function App() {
                     style={{
                       backgroundColor: getAqiColor(
                         latestAqi,
-                        items[0]?.in_active,
+                        items?.[DB_KEYS.IN_ACTIVE],
                       ),
                     }}
                   >
