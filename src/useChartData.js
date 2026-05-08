@@ -70,6 +70,7 @@ export default function useChartData({ roomId, hours, inActive, ready }) {
 
   useEffect(() => {
     if (!roomId || !ready || inActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(false);
       setLoading(false);
       return;

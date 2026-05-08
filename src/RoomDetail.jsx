@@ -136,11 +136,16 @@ function RoomDetail({ roomId, item, onBack }) {
       <div className="detail-header">
         <h2>Room {roomId}</h2>
       </div>
-      <p className="detail-time">
-        {item?.[DB_KEYS.CREATED_AT]
-          ? formatDate(item?.[DB_KEYS.CREATED_AT], { seconds: true })
-          : "N/A"}
-      </p>
+      <div className="detail-time">
+        {item?.displayTime ? (
+          formatDate(item?.displayTime, { seconds: true })
+        ) : (
+          <div
+            style={{ width: "100px" }}
+            className="skeleton-line skeleton-label"
+          />
+        )}
+      </div>
 
       <div className="metric-grid">
         {item == null

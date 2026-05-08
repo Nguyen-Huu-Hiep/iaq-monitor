@@ -59,7 +59,7 @@ export default function useSensorData() {
           table: TABLES.ALL_DATA,
         },
         (payload) => {
-          const row = withInactive(payload.new);
+          const row = buildRow(payload.new);
 
           setDataByRoom((prev) => {
             const room = row[DB_KEYS.ROOM_ID];
@@ -87,11 +87,13 @@ export default function useSensorData() {
   const fetchRetryRef = useRef(0);
   const MAX_FETCH_RETRY = FETCH_CONFIG.MAX_RETRY;
 
-  function withInactive(row) {
-    const updateAt = new Date(row[DB_KEYS.UPDATED_AT]);
+  function buildRow(row) {
+    const displayTime = row[DB_KEYS.UPDATED_AT] ?? row[DB_KEYS.CREATED_AT];
+    const updateAt = new Date(displayTime);
     const inactive =
       Date.now() - updateAt.getTime() > REALTIME_CONFIG.INACTIVE_THRESHOLD_MS;
-    return { ...row, [DB_KEYS.IN_ACTIVE]: inactive };
+
+    return { ...row, displayTime, [DB_KEYS.IN_ACTIVE]: inactive };
   }
 
   useEffect(() => {
@@ -99,6 +101,7 @@ export default function useSensorData() {
     fetchRetryRef.current = 0;
     retryRef.current = 0;
     reconnectingRef.current = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRealtimeStatus("connecting");
     realtimeRoomsRef.current.clear();
 
@@ -136,7 +139,7 @@ export default function useSensorData() {
       const grouped = {};
 
       for (const item of data || []) {
-        const row = withInactive(item);
+        const row = buildRow(item);
         const room = row[DB_KEYS.ROOM_ID];
 
         // skip if realtime already set this room
