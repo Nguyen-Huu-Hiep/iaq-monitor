@@ -26,15 +26,69 @@ export const TABLES = {
 
 // Metric definitions — driven by DB_KEYS use for room detail
 export const METRICS = [
-  { key: DB_KEYS.AQI, label: "AQI", unit: null },
-  { key: DB_KEYS.TEMPERATURE, label: "Temperature", unit: "°C" },
-  { key: DB_KEYS.HUMIDITY, label: "Humidity", unit: "%" },
-  { key: DB_KEYS.PM2_5, label: "PM2.5", unit: "µg/m³" },
-  { key: DB_KEYS.PM1, label: "PM1", unit: "µg/m³" },
-  { key: DB_KEYS.PM10, label: "PM10", unit: "µg/m³" },
-  { key: DB_KEYS.TVOC, label: "TVOC", unit: "ppb" },
-  { key: DB_KEYS.ECO2, label: "eCO₂", unit: "ppm" },
-  { key: DB_KEYS.CO, label: "CO", unit: "ppm" },
+  {
+    key: DB_KEYS.AQI,
+    label: "AQI",
+    unit: null,
+    icon: "🪟",
+    iconBg: "rgba(100,120,200,0.2)",
+  },
+  {
+    key: DB_KEYS.TEMPERATURE,
+    label: "Temperature",
+    unit: "°C",
+    icon: "🌡️",
+    iconBg: "rgba(255,100,80,0.2)",
+  },
+  {
+    key: DB_KEYS.HUMIDITY,
+    label: "Humidity",
+    unit: "%",
+    icon: "💧",
+    iconBg: "rgba(80,160,255,0.2)",
+  },
+  {
+    key: DB_KEYS.PM2_5,
+    label: "PM2.5",
+    unit: "µg/m³",
+    icon: "🧹",
+    iconBg: "rgba(180,140,80,0.2)",
+  },
+  {
+    key: DB_KEYS.PM1,
+    label: "PM1",
+    unit: "µg/m³",
+    icon: "🧹",
+    iconBg: "rgba(180,140,80,0.2)",
+  },
+  {
+    key: DB_KEYS.PM10,
+    label: "PM10",
+    unit: "µg/m³",
+    icon: "🧹",
+    iconBg: "rgba(180,140,80,0.2)",
+  },
+  {
+    key: DB_KEYS.TVOC,
+    label: "TVOC",
+    unit: "ppb",
+    icon: "🧪",
+    iconBg: "rgba(160,80,200,0.2)",
+  },
+  {
+    key: DB_KEYS.ECO2,
+    label: "eCO₂",
+    unit: "ppm",
+    icon: "🌿",
+    iconBg: "rgba(60,180,100,0.2)",
+  },
+  {
+    key: DB_KEYS.CO,
+    label: "CO",
+    unit: "ppm",
+    icon: "⚠️",
+    iconBg: "rgba(255,160,40,0.2)",
+  },
 ];
 
 // Realtime configuration

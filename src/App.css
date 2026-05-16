@@ -132,40 +132,46 @@
 .metric-card {
     background: #1e1e2e;
     border-radius: 12px;
-    padding: 24px 32px;
-    min-width: 140px;
-    text-align: center;
+    padding: 12px 16px;
+    min-width: 170px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.metric-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.metric-icon {
+    font-size: 1rem;
+    line-height: 1;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .metric-label {
     font-size: 0.75rem;
     color: #888;
     text-transform: uppercase;
+    font-weight: bold;
     letter-spacing: 1px;
-    margin-bottom: 8px;
 }
 
 .metric-value {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
-    color: #fff;
-}
-
-.metric-card:has(.metric-value) .metric-label {
-    color: #555;
-}
-
-/* AQI metric card overrides text color */
-.metric-card[style] .metric-value,
-.metric-card[style] .metric-label {
-    color: #111;
+    transition: color 0.3s ease;
 }
 
 .metric-unit {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 400;
-    color: #000000;
+    opacity: 0.7;
 }
 
 /* Chart */
@@ -225,11 +231,11 @@
     }
 
     .metric-card {
-        padding: 16px 20px;
+        padding: 14px 16px;
     }
 
     .metric-value {
-        font-size: 1.6rem;
+        font-size: 1.6em;
     }
 }
 
@@ -257,11 +263,11 @@
     }
 
     .metric-card {
-        padding: 14px 16px;
+        padding: 12px 14px;
     }
 
     .metric-value {
-        font-size: 1.4rem;
+        font-size: 1.4em;
     }
 
     .chart-container {

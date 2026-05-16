@@ -155,29 +155,42 @@ function RoomDetail({ roomId, item, onBack }) {
                 <div className="skeleton-line skeleton-value" />
               </div>
             ))
-          : METRICS.sort((a, b) => {
-              const aNull = item?.[a.key] == null ? 1 : 0;
-              const bNull = item?.[b.key] == null ? 1 : 0;
-              return aNull - bNull;
-            }).map(({ key, label, unit }) => (
-              <div
-                key={key}
-                className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
-                style={{
-                  backgroundColor:
-                    getMetricColor(key, item?.[key]) ?? "#1e1e2e",
-                }}
-                onClick={() => setActiveMetric(key)}
-              >
-                <div className="metric-label">{label}</div>
-                <div className="metric-value">
-                  {item?.[key] ?? "N/A"}
-                  {item?.[key] != null && unit && (
-                    <span className="metric-unit"> {unit}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          : [...METRICS]
+              .sort((a, b) => {
+                const aNull = item?.[a.key] == null ? 1 : 0;
+                const bNull = item?.[b.key] == null ? 1 : 0;
+                return aNull - bNull;
+              })
+              .map(({ key, label, unit, icon, iconBg }) => {
+                const color = getMetricColor(key, item?.[key]);
+                const isNull = item?.[key] == null;
+                return (
+                  <div
+                    key={key}
+                    className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
+                    onClick={() => setActiveMetric(key)}
+                  >
+                    <div className="metric-card-top">
+                      <span
+                        className="metric-icon"
+                        style={{ background: iconBg }}
+                      >
+                        {icon}
+                      </span>
+                      <span className="metric-label">{label}</span>
+                    </div>
+                    <div
+                      className="metric-value"
+                      style={{ color: isNull ? "#444" : (color ?? "#444") }}
+                    >
+                      {item?.[key] ?? "N/A"}
+                      {item?.[key] != null && unit && (
+                        <span className="metric-unit"> {unit}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
       </div>
 
       <div className="chart-container">
