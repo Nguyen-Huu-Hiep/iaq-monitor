@@ -134,7 +134,7 @@ function RoomDetail({ roomId, item, onBack }) {
         ← Back
       </button>
       <div className="detail-header">
-        <h2>Room {roomId}</h2>
+        <h2>{item?.roomName || `Room ${roomId}`}</h2>
       </div>
       <div className="detail-time">
         {item?.displayTime ? (

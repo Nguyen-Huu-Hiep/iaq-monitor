@@ -21,7 +21,7 @@ export function formatDate(isoString, options = {}) {
 }
 
 export function getAqiColor(aqi, inActive = false) {
-  if (inActive) return "rgba(78, 78, 78, 1)";
+  if (inActive) return "rgb(58, 58, 58)";
   if (aqi == null) return null;
   if (aqi <= 50) return "rgb(0,228,0)";
   if (aqi <= 100) return "rgb(255,255,0)";
@@ -29,6 +29,16 @@ export function getAqiColor(aqi, inActive = false) {
   if (aqi <= 200) return "rgb(255,0,0)";
   if (aqi <= 300) return "rgb(143,63,151)";
   return "rgb(126,0,35)";
+}
+
+export function getApiStatusIcon(aqi, inActive = false) {
+  if (aqi == null || inActive) return "❓";
+  if (aqi <= 50) return "😀";
+  if (aqi <= 100) return "🙂";
+  if (aqi <= 150) return "😐";
+  if (aqi <= 200) return "🙁";
+  if (aqi <= 300) return "😠";
+  return "🤬";
 }
 
 // Temperature: xanh lạnh → vàng → đỏ nóng
@@ -131,3 +141,6 @@ export function getMetricColor(key, value) {
       return null;
   }
 }
+
+
+

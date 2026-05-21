@@ -1,12 +1,12 @@
 import "./App.css";
-import { DB_KEYS } from "./config";
 import ErrorState from "./components/ErrorState";
+import RoomCard from "./components/RoomCard";
+import { DB_KEYS } from "./config";
 import Header from "./Header";
 import RoomDetail from "./RoomDetail";
 import usePullToRefresh from "./usePullToRefresh";
 import { useQueryParam } from "./useQueryParam";
 import useSensorData from "./useSensorData";
-import { getAqiColor } from "./utils";
 
 function App() {
   const { dataByRoom, refetch, loading, error, statusMsg, realtimeStatus } =
@@ -29,7 +29,7 @@ function App() {
       case loading:
         return (
           <div className="card-grid">
-            {Array.from({ length: 18 }, (_, i) => (
+            {Array.from({ length: 8 }, (_, i) => (
               <div key={i} className="room-card room-card-skeleton">
                 <div className="skeleton-line skeleton-title" />
                 <div className="skeleton-line skeleton-label" />
@@ -50,23 +50,14 @@ function App() {
                 return aInactive - bInactive;
               })
               .map(([roomId, items]) => {
-                const latestAqi = items?.[DB_KEYS.AQI] ?? null;
                 return (
-                  <div
+                  <RoomCard
                     key={roomId}
-                    className="room-card"
-                    onClick={() => setSelectedRoom(roomId)}
-                    style={{
-                      backgroundColor: getAqiColor(
-                        latestAqi,
-                        items?.[DB_KEYS.IN_ACTIVE],
-                      ),
-                    }}
-                  >
-                    <h3>Room {roomId}</h3>
-                    <div className="aqi-label">AQI</div>
-                    <div className="aqi-value">{latestAqi ?? "N/A"}</div>
-                  </div>
+                    roomId={roomId}
+                    items={items}
+                    setSelectedRoom={setSelectedRoom}
+                    onSaveSuccess={refetch}
+                  />
                 );
               })}
           </div>

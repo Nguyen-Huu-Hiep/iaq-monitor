@@ -22,6 +22,7 @@ export const DB_KEYS = {
 export const TABLES = {
   LIST_ONE: "api_room",
   ALL_DATA: "api_room_history",
+  LIST_NAME_MAPPING: "api_room_name_mapping",
 };
 
 // Metric definitions — driven by DB_KEYS use for room detail
