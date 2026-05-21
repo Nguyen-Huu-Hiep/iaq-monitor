@@ -5,7 +5,13 @@ import { getApiStatusIcon, getAqiColor } from "../utils";
 import Modal from "./Modal";
 import { supabase } from "../supabase";
 
-const RoomCard = ({ roomId, items, setSelectedRoom, onSaveSuccess }) => {
+const RoomCard = ({
+  roomId,
+  items,
+  setSelectedRoom,
+  onSaveSuccess,
+  allowEdit,
+}) => {
   const latestAqi = items?.[DB_KEYS.AQI] ?? null;
   const color = getAqiColor(latestAqi, items?.[DB_KEYS.IN_ACTIVE]);
   const [isEditing, setIsEditing] = useState(false);
@@ -53,15 +59,17 @@ const RoomCard = ({ roomId, items, setSelectedRoom, onSaveSuccess }) => {
             {items?.roomName || "Unknown Room"}
           </span>
         </div>
-        <div>
-          <button
-            type="button"
-            className="edit-button"
-            onClick={handleOpenEdit}
-          >
-            ✏️
-          </button>
-        </div>
+        {allowEdit && (
+          <div>
+            <button
+              type="button"
+              className="edit-button"
+              onClick={handleOpenEdit}
+            >
+              ✏️
+            </button>
+          </div>
+        )}
       </div>
       <div className="room-card-body">
         <div
