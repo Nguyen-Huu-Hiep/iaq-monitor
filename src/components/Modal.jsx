@@ -25,11 +25,7 @@ const Modal = ({
   };
 
   useEffect(() => {
-    if (!visible) return undefined;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
+    if (!visible) return;
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         onCancel?.();
@@ -42,7 +38,6 @@ const Modal = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
     };
   }, [visible, onCancel, onOk]);
 

@@ -66,7 +66,7 @@ export default function useSensorData() {
             realtimeRoomsRef.current.add(room);
             return {
               ...prev,
-              [room]: row,
+              [room]: { ...prev[room], ...row },
             };
           });
         },

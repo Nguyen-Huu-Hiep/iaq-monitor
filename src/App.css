@@ -136,7 +136,6 @@
     box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
     overflow: hidden;
     width: 100%;
-    max-width: 560px;
 }
 
 .modal-header {
