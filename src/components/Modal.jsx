@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Modal = ({
   visible,
@@ -78,7 +80,7 @@ const Modal = ({
           <div className="modal-title">{title}</div>
           {closable && (
             <button type="button" className="modal-close" onClick={onCancel}>
-              ×
+              <FontAwesomeIcon icon={faXmark} />
             </button>
           )}
         </div>

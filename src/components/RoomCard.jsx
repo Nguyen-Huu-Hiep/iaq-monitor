@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { DB_KEYS, TABLES } from "../config";
 import "../App.css";
 import { getApiStatusIcon, getAqiColor } from "../utils";
@@ -16,32 +18,32 @@ const RoomCard = ({
   const color = getAqiColor(latestAqi, items?.[DB_KEYS.IN_ACTIVE]);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
-  const [roomNameDraft, setRoomNameDraft] = useState(items?.roomName ?? "");
+  // const [roomNameDraft, setRoomNameDraft] = useState(items?.roomName ?? "");
 
-  const handleOpenEdit = (event) => {
-    event.stopPropagation();
-    setRoomNameDraft(items?.roomName ?? "");
-    setIsEditing(true);
-  };
+  // const handleOpenEdit = (event) => {
+  //   event.stopPropagation();
+  //   setRoomNameDraft(items?.roomName ?? "");
+  //   setIsEditing(true);
+  // };
 
-  const handleSave = async () => {
-    if (!roomNameDraft.trim()) {
-      setError("Room name cannot be empty");
-      return;
-    }
-    setError(null);
-    await supabase.from(TABLES.LIST_NAME_MAPPING).upsert(
-      {
-        room_id: roomId,
-        name: roomNameDraft,
-      },
-      {
-        onConflict: "room_id",
-      },
-    );
-    setIsEditing(false);
-    onSaveSuccess?.();
-  };
+  // const handleSave = async () => {
+  //   if (!roomNameDraft.trim()) {
+  //     setError("Room name cannot be empty");
+  //     return;
+  //   }
+  //   setError(null);
+  //   await supabase.from(TABLES.LIST_NAME_MAPPING).upsert(
+  //     {
+  //       room_id: roomId,
+  //       name: roomNameDraft,
+  //     },
+  //     {
+  //       onConflict: "room_id",
+  //     },
+  //   );
+  //   setIsEditing(false);
+  //   onSaveSuccess?.();
+  // };
 
   return (
     <div className="room-card" onClick={() => setSelectedRoom(roomId)}>
@@ -56,20 +58,20 @@ const RoomCard = ({
             {roomId}
           </span>
           <span className="room-card-room-name">
-            {items?.roomName || "Unknown Room"}
+            {items?.status || `Phòng ${roomId}`}
           </span>
         </div>
-        {allowEdit && (
+        {/* {allowEdit && (
           <div>
             <button
               type="button"
               className="edit-button"
               onClick={handleOpenEdit}
             >
-              ✏️
+              <FontAwesomeIcon icon={faPenToSquare} />
             </button>
           </div>
-        )}
+        )} */}
       </div>
       <div className="room-card-body">
         <div
@@ -79,12 +81,15 @@ const RoomCard = ({
           }}
         >
           {latestAqi ?? "N/A"}
-          {getApiStatusIcon(latestAqi, items?.[DB_KEYS.IN_ACTIVE])}
+          <FontAwesomeIcon
+            icon={getApiStatusIcon(latestAqi, items?.[DB_KEYS.IN_ACTIVE])}
+          />
+          {}
         </div>
         <div className="room-card-status">AQI</div>
       </div>
 
-      <Modal
+      {/* <Modal
         visible={isEditing}
         title="Edit room name"
         onCancel={() => setIsEditing(false)}
@@ -107,7 +112,7 @@ const RoomCard = ({
           />
           {error && <div className="modal-error">{error}</div>}
         </div>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };

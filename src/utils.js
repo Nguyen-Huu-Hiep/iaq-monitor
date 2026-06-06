@@ -32,13 +32,13 @@ export function getAqiColor(aqi, inActive = false) {
 }
 
 export function getApiStatusIcon(aqi, inActive = false) {
-  if (aqi == null || inActive) return "❓";
-  if (aqi <= 50) return "😀";
-  if (aqi <= 100) return "🙂";
-  if (aqi <= 150) return "😐";
-  if (aqi <= 200) return "🙁";
-  if (aqi <= 300) return "😠";
-  return "🤬";
+  if (aqi == null || inActive) return "";
+  if (aqi <= 50) return faFaceGrinBeam;
+  if (aqi <= 100) return faFaceSmile;
+  if (aqi <= 150) return faFaceMeh;
+  if (aqi <= 200) return faFaceFrown;
+  if (aqi <= 300) return faFaceAngry;
+  return faFaceDizzy;
 }
 
 // Temperature: xanh lạnh → vàng → đỏ nóng
@@ -73,14 +73,13 @@ export function getPm25Color(v) {
   return "rgb(126,0,35)";
 }
 
-// CO (ppm)
+// CO2 (ppm)
 export function getCoColor(v) {
   if (v == null) return null;
-  if (v <= 4) return "rgb(0,228,0)";
-  if (v <= 9) return "rgb(255,255,0)";
-  if (v <= 35) return "rgb(255,126,0)";
-  if (v <= 70) return "rgb(255,0,0)";
-  return "rgb(143,63,151)";
+  if (v <= 800) return "rgb(0,228,0)";
+  if (v <= 1200) return "rgb(255,255,0)";
+  if (v <= 2000) return "rgb(255,126,0)";
+  return "rgb(255,0,0)";
 }
 
 // PM1 / PM10 (µg/m³) — dùng thang tương tự PM2.5
@@ -114,6 +113,14 @@ export function getEco2Color(v) {
   return "rgb(143,63,151)";
 }
 
+import {
+  faFaceAngry,
+  faFaceDizzy,
+  faFaceFrown,
+  faFaceGrinBeam,
+  faFaceMeh,
+  faFaceSmile,
+} from "@fortawesome/free-solid-svg-icons";
 import { DB_KEYS, METRICS } from "./config";
 
 export { METRICS };
@@ -141,6 +148,3 @@ export function getMetricColor(key, value) {
       return null;
   }
 }
-
-
-

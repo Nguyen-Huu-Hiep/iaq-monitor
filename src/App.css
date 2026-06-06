@@ -234,10 +234,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
+    margin: 0 auto 12px;
+    max-width: 60%;
+    word-break: normal;
+    text-align: center;
 }
 
 .back-btn {
+    position: absolute;
     display: inline-flex;
     width: fit-content;
     gap: 6px;
@@ -263,7 +267,7 @@
 .detail-time {
     color: #666;
     font-size: 0.8rem;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -271,15 +275,96 @@
 
 .metric-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
     gap: 16px;
+}
+
+/* AQI row — căn giữa, max 500px */
+.metric-row-aqi {
+    display: flex;
+    justify-content: center;
+}
+
+.metric-row-aqi .metric-card {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* AQI card — 2 cột layout */
+.aqi-card {
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px;
+}
+
+.aqi-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.aqi-col-left {
+    flex: 1;
+}
+
+.aqi-col-right {
+    text-align: right;
+    min-width: 80px;
+}
+
+.aqi-col-label {
+    font-size: 0.75rem;
+    color: #ccc;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.aqi-col-value {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.aqi-col-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.aqi-col-right .aqi-col-sub {
+    justify-content: flex-end;
+}
+
+.aqi-col-sub-label {
+    font-size: 0.72rem;
+    color: #ccc;
+    font-weight: 600;
+}
+
+.aqi-col-sub-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Other metrics row — 1 hàng trên desktop, grid 4 cột trên tablet, 3 cột trên mobile */
+.metric-row-others {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+}
+
+.metric-row-others .metric-card {
+    min-width: 0;
 }
 
 .metric-card {
     background: #1e1e2e;
     border-radius: 12px;
     padding: 12px 16px;
-    min-width: 170px;
+    min-width: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
@@ -298,11 +383,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: fit-content;
 }
 
 .metric-label {
     font-size: 0.75rem;
-    color: #888;
+    color: #ccc;
     text-transform: uppercase;
     font-weight: bold;
     letter-spacing: 1px;
@@ -317,12 +403,14 @@
 .metric-unit {
     font-size: 0.8rem;
     font-weight: 400;
-    opacity: 0.7;
+    opacity: 1;
+    font-weight: normal;
+    color: #ccc;
 }
 
 /* Chart */
 .chart-container {
-    margin-top: 1.5rem;
+    margin-top: 16px;
     background: #1e1e2e;
     border-radius: 12px;
     padding: 1rem 1.25rem;
@@ -366,8 +454,25 @@
         gap: 14px;
     }
 
-    .metric-grid {
+    .room-card {
+        width: 200px;
+    }
+
+    .room-card-room-name {
+        font-size: 0.8rem;
+    }
+
+    .room-card-value {
+        font-size: 2rem;
+    }
+
+    /* .metric-grid {
         justify-content: center;
+        gap: 12px;
+    } */
+
+    .metric-row-others {
+        grid-template-columns: repeat(3, 1fr);
         gap: 12px;
     }
 
@@ -377,6 +482,10 @@
 
     .metric-value {
         font-size: 1.6em;
+    }
+
+    .detail h2 {
+        font-size: 1.2rem;
     }
 }
 
@@ -397,10 +506,30 @@
 
     .card-grid {
         gap: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .room-card {
+        width: calc(50% - 5px);
+    }
+
+    .room-card-room-name {
+        font-size: 0.75rem;
+    }
+
+    .room-card-value {
+        font-size: 1.5rem;
     }
 
     .metric-card {
         padding: 12px 14px;
+    }
+
+    .metric-row-others {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
 
     .metric-value {
@@ -409,6 +538,10 @@
 
     .chart-container {
         padding: 0.75rem;
+    }
+
+    .detail h2 {
+        font-size: 1rem;
     }
 }
 

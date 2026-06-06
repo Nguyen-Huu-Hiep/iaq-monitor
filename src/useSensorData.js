@@ -113,10 +113,7 @@ export default function useSensorData() {
     async function fetchInitial() {
       setErr(false);
       setLoading(true);
-      const [roomNameList, { data, error }] = await Promise.all([
-        supabase.from(TABLES.LIST_NAME_MAPPING).select("*"),
-        supabase.from(TABLES.LIST_ONE).select("*"),
-      ]);
+      const { data, error } = await supabase.from(TABLES.LIST_ONE).select("*");
 
       if (error) {
         if (fetchRetryRef.current < MAX_FETCH_RETRY) {
@@ -144,12 +141,6 @@ export default function useSensorData() {
       for (const item of data || []) {
         const row = buildRow(item);
         const room = row[DB_KEYS.ROOM_ID];
-        const roomName = roomNameList.data?.find(
-          (r) => r.room_id === room.toString(),
-        )?.name;
-        if (roomName) {
-          row.roomName = roomName;
-        }
         // skip if realtime already set this room
         if (realtimeRoomsRef.current.has(room)) continue;
 

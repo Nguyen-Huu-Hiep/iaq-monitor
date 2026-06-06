@@ -8,12 +8,20 @@ import {
   Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faRotateRight,
+  faBoxOpen,
+  faHouse,
+} from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import ErrorState from "./components/ErrorState";
 import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
 import { formatDate, getMetricColor, METRICS } from "./utils";
-import { DB_KEYS } from "./config";
+import { DB_KEYS, TABLES } from "./config";
+import { useEffect, useState } from "react";
+import { supabase } from "./supabase";
 
 ChartJS.register(
   CategoryScale,
@@ -26,7 +34,8 @@ ChartJS.register(
 
 const TIME_RANGES = [
   { label: "1h", hours: 1 },
-  { label: "24h", hours: 24 },
+  { label: "1 day", hours: 24 },
+  { label: "1 week", hours: 168 },
 ];
 
 function RoomDetail({ roomId, item, onBack }) {
@@ -55,12 +64,53 @@ function RoomDetail({ roomId, item, onBack }) {
     ready: item != null,
   });
 
-  const labels = chartItems.map((d) =>
-    formatDate(d[DB_KEYS.CREATED_AT], { compact: true, shortYear: true }),
-  );
-  const values = chartItems.map((d) => d[activeMetric] ?? null);
+  const [dataHour, setDataHour] = useState({});
 
-  const metricMeta = METRICS.find((m) => m.key === activeMetric);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from(TABLES.HOURLY_TABLE).select("*");
+      const grouped = (data ?? []).reduce((acc, row) => {
+        const id = row.room_id;
+        if (!acc[id]) acc[id] = [];
+        acc[id].push(row);
+        return acc;
+      }, {});
+
+      for (const id of Object.keys(grouped)) {
+        const latest = grouped[id].reduce((a, b) =>
+          new Date(a.updated_at) > new Date(b.updated_at) ? a : b,
+        );
+        grouped[id].displayAQI = latest.aqi_h;
+        grouped[id].displayPM25 = latest.pm25_h.toFixed(0);
+      }
+      setDataHour(grouped);
+    })();
+  }, [roomId]);
+
+  const hourlyItems = (() => {
+    const all = dataHour?.[roomId] ?? [];
+    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    return all.filter((d) => new Date(d.created_at) >= cutoff);
+  })();
+
+  const labels =
+    activeMetric === "aqi1h"
+      ? hourlyItems.map((d) =>
+          formatDate(d.created_at, { compact: true, shortYear: true }),
+        )
+      : chartItems.map((d) =>
+          formatDate(d[DB_KEYS.CREATED_AT], { compact: true, shortYear: true }),
+        );
+
+  const values =
+    activeMetric === "aqi1h"
+      ? hourlyItems.map((d) => d.aqi_h ?? null)
+      : chartItems.map((d) => d[activeMetric] ?? null);
+
+  const metricMeta =
+    activeMetric === "aqi1h"
+      ? null
+      : METRICS.find((m) => m.key === activeMetric);
 
   const chartData = {
     labels,
@@ -92,7 +142,9 @@ function RoomDetail({ roomId, item, onBack }) {
       case inActive:
         return (
           <div className="no-data">
-            <div className="no-data-icon">📭</div>
+            <div className="no-data-icon">
+              <FontAwesomeIcon icon={faBoxOpen} />
+            </div>
             <div>No data to show!</div>
           </div>
         );
@@ -131,10 +183,10 @@ function RoomDetail({ roomId, item, onBack }) {
           setTimeRange(null);
         }}
       >
-        ← Back
+        <FontAwesomeIcon icon={faHouse} />
       </button>
       <div className="detail-header">
-        <h2>{item?.roomName || `Room ${roomId}`}</h2>
+        <h2>{item?.status || `Phòng ${roomId}`}</h2>
       </div>
       <div className="detail-time">
         {item?.displayTime ? (
@@ -148,55 +200,136 @@ function RoomDetail({ roomId, item, onBack }) {
       </div>
 
       <div className="metric-grid">
-        {item == null
-          ? Array.from({ length: METRICS.length }, (_, i) => (
-              <div key={i} className="room-card room-card-skeleton">
+        {item == null ? (
+          <>
+            <div className="metric-row-aqi">
+              <div className="metric-card aqi-card room-card-skeleton">
                 <div className="skeleton-line skeleton-title" />
                 <div className="skeleton-line skeleton-value" />
               </div>
-            ))
-          : [...METRICS]
-              .sort((a, b) => {
-                const aNull = item?.[a.key] == null ? 1 : 0;
-                const bNull = item?.[b.key] == null ? 1 : 0;
-                return aNull - bNull;
-              })
-              .map(({ key, label, unit, icon, iconBg }) => {
-                const color = getMetricColor(key, item?.[key]);
-                const isNull = item?.[key] == null;
-                return (
-                  <div
-                    key={key}
-                    className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
-                    onClick={() => setActiveMetric(key)}
-                  >
-                    <div className="metric-card-top">
-                      <span
-                        className="metric-icon"
-                        style={{ background: iconBg }}
-                      >
-                        {icon}
-                      </span>
-                      <span className="metric-label">{label}</span>
-                    </div>
-                    <div
-                      className="metric-value"
-                      style={{ color: isNull ? "#444" : (color ?? "#444") }}
+            </div>
+            <div className="metric-row-others">
+              {Array.from({ length: METRICS.length - 1 }, (_, i) => (
+                <div key={i} className="room-card room-card-skeleton">
+                  <div className="skeleton-line skeleton-title" />
+                  <div className="skeleton-line skeleton-value" />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          (() => {
+            const aqiMetric = METRICS.find((m) => m.key === DB_KEYS.AQI);
+            const otherMetrics = METRICS.filter((m) => m.key !== DB_KEYS.AQI);
+
+            const renderCard = ({ key, label, unit, icon, iconBg }) => {
+              const color = getMetricColor(key, item?.[key]);
+              const isNull = item?.[key] == null;
+              return (
+                <div
+                  key={key}
+                  className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
+                  onClick={() => setActiveMetric(key)}
+                >
+                  <div className="metric-card-top">
+                    <span
+                      className="metric-icon"
+                      style={{ background: iconBg }}
                     >
-                      {item?.[key] ?? "N/A"}
-                      {item?.[key] != null && unit && (
-                        <span className="metric-unit"> {unit}</span>
-                      )}
-                    </div>
+                      <FontAwesomeIcon icon={icon} />
+                    </span>
+                    <span className="metric-label">{label}</span>
                   </div>
-                );
-              })}
+                  <div
+                    className="metric-value"
+                    style={{ color: isNull ? "#444" : (color ?? "#444") }}
+                  >
+                    {item?.[key] ?? "N/A"}
+                    {item?.[key] != null && unit && (
+                      <span className="metric-unit"> {unit}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            };
+
+            const renderCardAQI = () => {
+              const aqiVal = item?.[DB_KEYS.AQI];
+              const aqiColor = getMetricColor(DB_KEYS.AQI, aqiVal);
+
+              const aqiAvg1h = dataHour?.[roomId]?.displayAQI;
+              const pm25Avg1h = dataHour?.[roomId]?.displayPM25;
+
+              return (
+                <div
+                  className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || "aqi1h" ? " active" : ""}`}
+                >
+                  <div
+                    className="aqi-col aqi-col-left"
+                    onClick={() => setActiveMetric("aqi1h")}
+                  >
+                    <span className="aqi-col-label">AQI 1h</span>
+                    <span
+                      className="aqi-col-value"
+                      style={{
+                        color: getMetricColor(DB_KEYS.AQI, aqiAvg1h) ?? "#444",
+                      }}
+                    >
+                      {aqiAvg1h ?? "N/A"}
+                    </span>
+                    <span className="aqi-col-sub">
+                      <span className="aqi-col-sub-label">PM2.5 1h</span>
+                      <span
+                        className="aqi-col-sub-value"
+                        style={{
+                          color:
+                            getMetricColor(DB_KEYS.PM2_5, pm25Avg1h) ?? "#444",
+                        }}
+                      >
+                        {pm25Avg1h}{" "}
+                        <span style={{ color: "#ccc", fontWeight: "normal" }}>
+                          µg/m³
+                        </span>
+                      </span>
+                    </span>
+                  </div>
+
+                  <div
+                    className="aqi-col aqi-col-right"
+                    onClick={() => setActiveMetric(DB_KEYS.AQI)}
+                  >
+                    <span className="aqi-col-label">Realtime</span>
+                    <span
+                      className="aqi-col-value"
+                      style={{ color: aqiColor ?? "#444" }}
+                    >
+                      {aqiVal ?? "N/A"}
+                    </span>
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <>
+                {aqiMetric && (
+                  <div className="metric-row-aqi">{renderCardAQI()}</div>
+                )}
+                <div className="metric-row-others">
+                  {otherMetrics.map(renderCard)}
+                </div>
+              </>
+            );
+          })()
+        )}
       </div>
 
       <div className="chart-container">
         <div className="chart-header">
           <div className="chart-title">
-            {metricMeta?.label} {metricMeta?.unit}
+            {activeMetric === "aqi1h"
+              ? "AQI 1H"
+              : `${metricMeta?.label}${metricMeta?.unit ? ` ${metricMeta?.unit}` : ""}`}
           </div>
           <div className="time-range-selector">
             {TIME_RANGES.map(({ label, hours: h }) => (
@@ -214,7 +347,7 @@ function RoomDetail({ roomId, item, onBack }) {
               disabled={loading}
               title={loading ? "Getting new data" : "Reload chart"}
             >
-              {loading ? "⏳" : "↻"}
+              <FontAwesomeIcon icon={faRotateRight} spin={loading} />
             </button>
           </div>
         </div>

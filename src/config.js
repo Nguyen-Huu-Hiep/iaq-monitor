@@ -13,7 +13,7 @@ export const DB_KEYS = {
   PM10: "pm10",
   TVOC: "tvoc",
   ECO2: "eco2",
-  CO: "co",
+  CO: "co2",
   STATUS: "status",
   IN_ACTIVE: "in_active",
 };
@@ -23,7 +23,17 @@ export const TABLES = {
   LIST_ONE: "api_room",
   ALL_DATA: "api_room_history",
   LIST_NAME_MAPPING: "api_room_name_mapping",
+  HOURLY_TABLE: "aqi_hourly",
 };
+
+import {
+  faWind,
+  faThermometerHalf,
+  faDroplet,
+  faFlask,
+  faLeaf,
+  faBroom,
+} from "@fortawesome/free-solid-svg-icons";
 
 // Metric definitions — driven by DB_KEYS use for room detail
 export const METRICS = [
@@ -31,64 +41,64 @@ export const METRICS = [
     key: DB_KEYS.AQI,
     label: "AQI",
     unit: null,
-    icon: "🪟",
+    icon: faWind,
     iconBg: "rgba(100,120,200,0.2)",
   },
   {
     key: DB_KEYS.TEMPERATURE,
     label: "Temperature",
     unit: "°C",
-    icon: "🌡️",
+    icon: faThermometerHalf,
     iconBg: "rgba(255,100,80,0.2)",
   },
   {
     key: DB_KEYS.HUMIDITY,
     label: "Humidity",
     unit: "%",
-    icon: "💧",
+    icon: faDroplet,
     iconBg: "rgba(80,160,255,0.2)",
   },
   {
     key: DB_KEYS.PM2_5,
     label: "PM2.5",
     unit: "µg/m³",
-    icon: "🧹",
+    icon: faBroom,
     iconBg: "rgba(180,140,80,0.2)",
   },
-  {
-    key: DB_KEYS.PM1,
-    label: "PM1",
-    unit: "µg/m³",
-    icon: "🧹",
-    iconBg: "rgba(180,140,80,0.2)",
-  },
+  // {
+  //   key: DB_KEYS.PM1,
+  //   label: "PM1",
+  //   unit: "µg/m³",
+  //   icon: faBroom,
+  //   iconBg: "rgba(180,140,80,0.2)",
+  // },
   {
     key: DB_KEYS.PM10,
     label: "PM10",
     unit: "µg/m³",
-    icon: "🧹",
+    icon: faBroom,
     iconBg: "rgba(180,140,80,0.2)",
   },
   {
     key: DB_KEYS.TVOC,
     label: "TVOC",
     unit: "ppb",
-    icon: "🧪",
+    icon: faFlask,
     iconBg: "rgba(160,80,200,0.2)",
   },
-  {
-    key: DB_KEYS.ECO2,
-    label: "eCO₂",
-    unit: "ppm",
-    icon: "🌿",
-    iconBg: "rgba(60,180,100,0.2)",
-  },
+  // {
+  //   key: DB_KEYS.ECO2,
+  //   label: "eCO₂",
+  //   unit: "ppm",
+  //   icon: faLeaf,
+  //   iconBg: "rgba(60,180,100,0.2)",
+  // },
   {
     key: DB_KEYS.CO,
-    label: "CO",
+    label: "CO₂",
     unit: "ppm",
-    icon: "⚠️",
-    iconBg: "rgba(255,160,40,0.2)",
+    icon: faLeaf,
+    iconBg: "rgba(0, 255, 0, 0.2)",
   },
 ];
 
@@ -103,6 +113,7 @@ export const REALTIME_CONFIG = {
 export const CHART_CONFIG = {
   MAX_POINTS_24H: 72,
   MAX_POINTS_1H: 60,
+  MAX_POINTS_1W: 112,
   CACHE_TTL_MS: 5 * 60 * 1000,
 };
 

@@ -14,67 +14,66 @@ function App() {
     useSensorData();
   const [selectedRoom, setSelectedRoom] = useQueryParam("room");
   const { visible, fading } = usePullToRefresh(refetch);
-  const [allowEdit, setAllowEdit] = useState(false);
-  const [key, setKey] = useState("");
-  console.log("🚀 ~ App ~ key:", key);
-  const inputRef = useRef(null);
+  // const [allowEdit, setAllowEdit] = useState(false);
+  // const [key, setKey] = useState("");
+  // const inputRef = useRef(null);
 
-  useEffect(() => {
-    if (!key) return;
-    if (key.toLowerCase().includes("edit")) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAllowEdit(true);
-      setKey("");
-    }
-    if (key.toLowerCase().includes("reset")) {
-      setAllowEdit(false);
-      setKey("");
-    }
-  }, [key]);
+  // useEffect(() => {
+  //   if (!key) return;
+  //   if (key.toLowerCase().includes("edit")) {
+  //     // eslint-disable-next-line react-hooks/set-state-in-effect
+  //     setAllowEdit(true);
+  //     setKey("");
+  //   }
+  //   if (key.toLowerCase().includes("reset")) {
+  //     setAllowEdit(false);
+  //     setKey("");
+  //   }
+  // }, [key]);
 
-  useEffect(() => {
-    let buffer = "";
+  // useEffect(() => {
+  //   let buffer = "";
 
-    const handleKeyDown = (event) => {
-      const active = event.target;
+  //   const handleKeyDown = (event) => {
+  //     const active = event.target;
 
-      if (
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        active.isContentEditable
-      ) {
-        return;
-      }
+  //     if (
+  //       active instanceof HTMLInputElement ||
+  //       active instanceof HTMLTextAreaElement ||
+  //       active.isContentEditable
+  //     ) {
+  //       return;
+  //     }
 
-      const key = event.key.toLowerCase();
+  //     const key = event.key.toLowerCase();
 
-      if (key === "escape") {
-        buffer = "";
-        setAllowEdit(false);
-        setKey("");
-        return;
-      }
+  //     if (key === "escape") {
+  //       buffer = "";
+  //       setAllowEdit(false);
+  //       setKey("");
+  //       return;
+  //     }
 
-      if (!/^[a-z]$/.test(key)) {
-        return;
-      }
+  //     if (!/^[a-z]$/.test(key)) {
+  //       return;
+  //     }
 
-      buffer += key;
+  //     buffer += key;
 
-      buffer = buffer.slice(-5);
+  //     buffer = buffer.slice(-5);
 
-      if (buffer === "eeeee") {
-        setAllowEdit(true);
-        buffer = "";
-      }
-    };
+  //     if (buffer === "eeeee") {
+  //       setAllowEdit(true);
+  //       buffer = "";
+  //     }
+  //   };
 
-    window.addEventListener("keydown", handleKeyDown);
+  //   window.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, []);
 
   function renderContent() {
     if (selectedRoom) {
@@ -90,40 +89,54 @@ function App() {
     switch (true) {
       case loading:
         return (
-          <div className="card-grid">
-            {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="room-card room-card-skeleton">
-                <div className="skeleton-line skeleton-title" />
-                <div className="skeleton-line skeleton-label" />
-                <div className="skeleton-line skeleton-value" />
-              </div>
-            ))}
-          </div>
+          <>
+            <Header realtimeStatus={realtimeStatus} />
+            <div className="card-grid">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div key={i} className="room-card room-card-skeleton">
+                  <div className="skeleton-line skeleton-title" />
+                  <div className="skeleton-line skeleton-label" />
+                  <div className="skeleton-line skeleton-value" />
+                </div>
+              ))}
+            </div>
+          </>
         );
       case error:
-        return <ErrorState onRetry={refetch} />;
+        return (
+          <>
+            <Header realtimeStatus={realtimeStatus} />
+            <ErrorState onRetry={refetch} />
+          </>
+        );
       default:
         return (
-          <div className="card-grid">
-            {Object.entries(dataByRoom)
-              .sort(([, a], [, b]) => {
-                const aInactive = a?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
-                const bInactive = b?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
-                return aInactive - bInactive;
-              })
-              .map(([roomId, items]) => {
-                return (
-                  <RoomCard
-                    key={roomId}
-                    roomId={roomId}
-                    items={items}
-                    setSelectedRoom={setSelectedRoom}
-                    onSaveSuccess={refetch}
-                    allowEdit={allowEdit}
-                  />
-                );
-              })}
-          </div>
+          <>
+            <Header realtimeStatus={realtimeStatus} />
+            <div className="card-grid">
+              {Object.entries(dataByRoom)
+                .sort(([roomIdA, a], [roomIdB, b]) => {
+                  const aInactive = a?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
+                  const bInactive = b?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
+                  if (aInactive !== bInactive) return aInactive - bInactive;
+                  // roomId === "0" luôn xếp cuối (trong cùng nhóm)
+                  const aZero = roomIdA === "0" ? 1 : 0;
+                  const bZero = roomIdB === "0" ? 1 : 0;
+                  return aZero - bZero;
+                })
+                .map(([roomId, items]) => {
+                  return (
+                    <RoomCard
+                      key={roomId}
+                      roomId={roomId}
+                      items={items}
+                      setSelectedRoom={setSelectedRoom}
+                      onSaveSuccess={refetch}
+                    />
+                  );
+                })}
+            </div>
+          </>
         );
     }
   }
@@ -135,13 +148,9 @@ function App() {
           ↓ Reload
         </div>
       )}
-      <Header
-        realtimeStatus={realtimeStatus}
-        onHiddenClick={() => inputRef.current?.focus()}
-      />
       {statusMsg && <div className="status-toast">{statusMsg}</div>}
       {renderContent()}
-      <input
+      {/* <input
         ref={inputRef}
         autoComplete="off"
         autoCorrect="off"
@@ -155,7 +164,7 @@ function App() {
         }}
         value={key}
         onChange={(e) => setKey(e.target.value)}
-      />
+      /> */}
     </div>
   );
 }

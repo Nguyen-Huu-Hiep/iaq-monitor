@@ -4,6 +4,7 @@ import { TABLES, CHART_CONFIG } from "./config";
 
 const MAX_POINTS_24H = CHART_CONFIG.MAX_POINTS_24H;
 const MAX_POINTS_1H = CHART_CONFIG.MAX_POINTS_1H;
+const MAX_POINTS_1W = CHART_CONFIG.MAX_POINTS_1W;
 const CACHE_TTL_MS = CHART_CONFIG.CACHE_TTL_MS;
 
 const cache = new Map();
@@ -49,7 +50,8 @@ function fetchSlots(roomId, hours, maxPoints) {
 }
 
 export default function useChartData({ roomId, hours, inActive, ready }) {
-  const MAX_POINTS = hours === 1 ? MAX_POINTS_1H : MAX_POINTS_24H;
+  const MAX_POINTS =
+    hours === 1 ? MAX_POINTS_1H : hours === 24 ? MAX_POINTS_24H : MAX_POINTS_1W;
 
   const [data, setData] = useState(
     () => cache.get(getCacheKey(roomId, hours))?.data ?? [],
