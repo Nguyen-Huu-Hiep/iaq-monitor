@@ -269,7 +269,7 @@ function RoomDetail({ roomId, item, onBack }) {
 
               return (
                 <div
-                  className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || "aqi1h" ? " active" : ""}`}
+                  className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || activeMetric === "aqi1h" ? " active" : ""}`}
                 >
                   <div
                     className="aqi-col aqi-col-left"
