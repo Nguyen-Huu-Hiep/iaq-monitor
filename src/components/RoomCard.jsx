@@ -16,34 +16,6 @@ const RoomCard = ({
 }) => {
   const latestAqi = items?.[DB_KEYS.AQI] ?? null;
   const color = getAqiColor(latestAqi, items?.[DB_KEYS.IN_ACTIVE]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState(null);
-  // const [roomNameDraft, setRoomNameDraft] = useState(items?.roomName ?? "");
-
-  // const handleOpenEdit = (event) => {
-  //   event.stopPropagation();
-  //   setRoomNameDraft(items?.roomName ?? "");
-  //   setIsEditing(true);
-  // };
-
-  // const handleSave = async () => {
-  //   if (!roomNameDraft.trim()) {
-  //     setError("Room name cannot be empty");
-  //     return;
-  //   }
-  //   setError(null);
-  //   await supabase.from(TABLES.LIST_NAME_MAPPING).upsert(
-  //     {
-  //       room_id: roomId,
-  //       name: roomNameDraft,
-  //     },
-  //     {
-  //       onConflict: "room_id",
-  //     },
-  //   );
-  //   setIsEditing(false);
-  //   onSaveSuccess?.();
-  // };
 
   return (
     <div className="room-card" onClick={() => setSelectedRoom(roomId)}>
@@ -61,17 +33,6 @@ const RoomCard = ({
             {items?.status || `Phòng ${roomId}`}
           </span>
         </div>
-        {/* {allowEdit && (
-          <div>
-            <button
-              type="button"
-              className="edit-button"
-              onClick={handleOpenEdit}
-            >
-              <FontAwesomeIcon icon={faPenToSquare} />
-            </button>
-          </div>
-        )} */}
       </div>
       <div className="room-card-body">
         <div
@@ -88,31 +49,6 @@ const RoomCard = ({
         </div>
         <div className="room-card-status">AQI</div>
       </div>
-
-      {/* <Modal
-        visible={isEditing}
-        title="Edit room name"
-        onCancel={() => setIsEditing(false)}
-        onOk={handleSave}
-        okText="Save"
-        cancelText="Cancel"
-      >
-        <div className="modal-form-row">
-          <label htmlFor={`room-name-${roomId}`}>Room name</label>
-          <input
-            id={`room-name-${roomId}`}
-            value={roomNameDraft}
-            onChange={(event) => {
-              setRoomNameDraft(event.target.value);
-              setError(null);
-            }}
-            className="modal-input"
-            autoFocus
-            onFocus={(e) => e.target.select()}
-          />
-          {error && <div className="modal-error">{error}</div>}
-        </div>
-      </Modal> */}
     </div>
   );
 };

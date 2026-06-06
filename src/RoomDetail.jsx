@@ -61,30 +61,37 @@ function RoomDetail({ roomId, item, onBack }) {
     roomId,
     hours,
     inActive: inActive,
-    ready: item != null,
+    ready: item != null && activeMetric != "aqi1h",
   });
 
   const [dataHour, setDataHour] = useState({});
+  const [fetching, setFetching] = useState(true);
+
+  const loadHourData = async () => {
+    setFetching(true);
+    const { data } = await supabase.from(TABLES.HOURLY_TABLE).select("*");
+    const grouped = (data ?? []).reduce((acc, row) => {
+      const id = row.room_id;
+      if (!acc[id]) acc[id] = [];
+      acc[id].push(row);
+      return acc;
+    }, {});
+
+    for (const id of Object.keys(grouped)) {
+      const latest = grouped[id].reduce((a, b) =>
+        new Date(a.updated_at) > new Date(b.updated_at) ? a : b,
+      );
+      grouped[id].displayAQI = latest.aqi_h;
+      grouped[id].displayPM25 = latest.pm25_h.toFixed(0);
+    }
+    setFetching(false);
+    setDataHour(grouped);
+  };
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from(TABLES.HOURLY_TABLE).select("*");
-      const grouped = (data ?? []).reduce((acc, row) => {
-        const id = row.room_id;
-        if (!acc[id]) acc[id] = [];
-        acc[id].push(row);
-        return acc;
-      }, {});
-
-      for (const id of Object.keys(grouped)) {
-        const latest = grouped[id].reduce((a, b) =>
-          new Date(a.updated_at) > new Date(b.updated_at) ? a : b,
-        );
-        grouped[id].displayAQI = latest.aqi_h;
-        grouped[id].displayPM25 = latest.pm25_h.toFixed(0);
-      }
-      setDataHour(grouped);
-    })();
+    if (roomId) {
+      loadHourData();
+    }
   }, [roomId]);
 
   const hourlyItems = (() => {
@@ -148,7 +155,7 @@ function RoomDetail({ roomId, item, onBack }) {
             <div>No data to show!</div>
           </div>
         );
-      case loading:
+      case loading || fetching:
       case item == null:
         return (
           <div className="chart-loading">
@@ -286,7 +293,7 @@ function RoomDetail({ roomId, item, onBack }) {
                             getMetricColor(DB_KEYS.PM2_5, pm25Avg1h) ?? "#444",
                         }}
                       >
-                        {pm25Avg1h}{" "}
+                        {pm25Avg1h ?? "N/A"}{" "}
                         <span style={{ color: "#ccc", fontWeight: "normal" }}>
                           µg/m³
                         </span>
@@ -343,7 +350,9 @@ function RoomDetail({ roomId, item, onBack }) {
             ))}
             <button
               className="time-range-btn"
-              onClick={refetch}
+              onClick={() => {
+                activeMetric === "aqi1h" ? loadHourData() : refetch();
+              }}
               disabled={loading}
               title={loading ? "Getting new data" : "Reload chart"}
             >

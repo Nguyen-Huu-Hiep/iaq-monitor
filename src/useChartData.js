@@ -43,7 +43,7 @@ function fetchSlots(roomId, hours, maxPoints) {
         .filter(Boolean)
         .reverse(),
     )
-    .finally(() => inflight.delete(key)); // Xóa khỏi inflight khi xong
+    .finally(() => inflight.delete(key));
 
   inflight.set(key, promise);
   return promise;
