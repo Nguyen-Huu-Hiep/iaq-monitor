@@ -33,14 +33,13 @@ const RoomCard = ({ roomId, items, setSelectedRoom }) => {
         <div
           className="room-card-value"
           style={{
-            color: color ?? "#444",
+            color: color ?? "var(--text-backup)",
           }}
         >
           {latestAqi ?? "N/A"}
           <FontAwesomeIcon
             icon={getApiStatusIcon(latestAqi, items?.[DB_KEYS.IN_ACTIVE])}
           />
-          {}
         </div>
         <div className="room-card-status">AQI</div>
       </div>

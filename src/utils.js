@@ -21,7 +21,7 @@ export function formatDate(isoString, options = {}) {
 }
 
 export function getAqiColor(aqi, inActive = false) {
-  if (inActive) return "rgb(58, 58, 58)";
+  if (inActive) return "var(--text-deactivated)";
   if (aqi == null) return null;
   if (aqi <= 50) return "rgb(0,228,0)";
   if (aqi <= 100) return "rgb(255,255,0)";

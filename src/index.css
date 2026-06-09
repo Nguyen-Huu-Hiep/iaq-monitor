@@ -10,8 +10,68 @@
 html,
 body {
   height: 100%;
-  background: #0f1117;
+  background: var(--bg, #0f1117);
+  color: var(--text, #e0e0e0);
   font-family: "Segoe UI", sans-serif;
+  text-shadow: var(--text-shadow);
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #0f1117;
+  --surface: #1e1e2e;
+  --surface-strong: #25263b;
+  --surface-muted: #171728;
+  --text: #e0e0e0;
+  --text-deactivated: rgb(58, 58, 58);
+  --text-backup: #444;
+  --muted: #aaa;
+  --muted-strong: #666;
+  --border: #333;
+  --primary: #4f9cf9;
+  --card-shadow: rgba(0, 0, 0, 0.4);
+  --modal-bg: #1f1f2e;
+  --button-bg: #25263b;
+  --button-border: #444661;
+  --button-hover: #2f3150;
+  --toast-bg: rgba(0, 0, 0, 0.75);
+  --realtime-dot-connected: #00ff08;
+  --realtime-dot-connected-shadow: #4caf50;
+  --realtime-dot-connecting: #ffee00;
+  --error: #f44336;
+  --text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  --border-card: #505050;
+  --chart-dot: #4f9cf9;
+  --chart-bg: rgba(79, 156, 249, 0.15);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #dddddd;
+  --surface: #ffffff;
+  --surface-strong: #d4d4d4;
+  --surface-muted: #f3f4f7;
+  --text: #16161b;
+  --text-deactivated: rgb(228, 228, 228);
+  --text-backup: rgb(190, 190, 190);
+  --muted: #16161b;
+  --muted-strong: #7c8894;
+  --border: #dfe3ee;
+  --primary: #4e4e4e;
+  --card-shadow: rgba(15, 17, 23, 0.08);
+  --modal-bg: #ffffff;
+  --button-bg: #f0f2fb;
+  --button-border: #d5d9eb;
+  --button-hover: #e8ecf8;
+  --toast-bg: rgba(255, 255, 255, 0.94);
+  --realtime-dot-connected: #07830f;
+  --realtime-dot-connected-shadow: #3ba34a;
+  --realtime-dot-connecting: #d4a300;
+  --error: #d32f2f;
+  --text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  --border-card: #b3b3b3;
+  --chart-dot: #8b8b8b;
+  --chart-bg: rgba(172, 172, 172, 0.15);
 }
 
 body {

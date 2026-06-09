@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import ErrorState from "./components/ErrorState";
 import RoomCard from "./components/RoomCard";
@@ -12,6 +12,17 @@ import useSensorData from "./useSensorData";
 function App() {
   const { dataByRoom, refetch, loading, error, statusMsg, realtimeStatus } =
     useSensorData();
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") {
+      return "dark";
+    }
+    return window.localStorage.getItem("theme") || "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const [selectedRoom, setSelectedRoom] = useQueryParam("room");
 
@@ -49,7 +60,13 @@ function App() {
           display: selectedRoom ? "none" : "block",
         }}
       >
-        <Header realtimeStatus={realtimeStatus} />
+        <Header
+          realtimeStatus={realtimeStatus}
+          theme={theme}
+          onToggleTheme={() =>
+            setTheme((current) => (current === "dark" ? "light" : "dark"))
+          }
+        />
 
         {loading && (
           <div className="card-grid">
@@ -101,6 +118,10 @@ function App() {
             item={dataByRoom[selectedRoom] ?? null}
             realtimeStatus={realtimeStatus}
             onBack={() => setSelectedRoom(null)}
+            theme={theme}
+            onToggleTheme={() =>
+              setTheme((current) => (current === "dark" ? "light" : "dark"))
+            }
           />
         )}
       </div>

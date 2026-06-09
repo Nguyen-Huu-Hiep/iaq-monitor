@@ -22,6 +22,7 @@ import { supabase } from "./supabase";
 import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
 import { formatDate, getMetricColor, METRICS } from "./utils";
+import ThemeButton from "./components/ThemeButton";
 
 ChartJS.register(
   CategoryScale,
@@ -38,7 +39,14 @@ const TIME_RANGES = [
   { label: "1 week", hours: 168 },
 ];
 
-function RoomDetail({ roomId, item, onBack, realtimeStatus }) {
+function RoomDetail({
+  roomId,
+  item,
+  onBack,
+  realtimeStatus,
+  theme,
+  onToggleTheme,
+}) {
   const inActive = item?.[DB_KEYS.IN_ACTIVE];
   const [activeMetric, setActiveMetric] = useQueryParam(
     "details",
@@ -139,13 +147,14 @@ function RoomDetail({ roomId, item, onBack, realtimeStatus }) {
       ? null
       : METRICS.find((m) => m.key === activeMetric);
 
+  const styles = getComputedStyle(document?.documentElement);
   const chartData = {
     labels,
     datasets: [
       {
         data: values,
-        borderColor: "#4f9cf9",
-        backgroundColor: "rgba(79,156,249,0.15)",
+        borderColor: styles.getPropertyValue("--chart-dot"),
+        backgroundColor: styles.getPropertyValue("--chart-bg"),
         fill: true,
         tension: 0.4,
         pointRadius: 3,
@@ -201,8 +210,109 @@ function RoomDetail({ roomId, item, onBack, realtimeStatus }) {
     }
   }
 
+  const renderCard = ({ key, label, unit, icon, iconBg }) => {
+    const color = getMetricColor(key, item?.[key]);
+    const isNull = item?.[key] == null;
+    return (
+      <div
+        key={key}
+        className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
+        onClick={() => setActiveMetric(key)}
+      >
+        <div className="metric-card-top">
+          <span className="metric-icon" style={{ background: iconBg }}>
+            <FontAwesomeIcon icon={icon} />
+          </span>
+          <span className="metric-label">{label}</span>
+        </div>
+        <div
+          className="metric-value"
+          style={{
+            color: isNull
+              ? "var(--text-backup)"
+              : (color ?? "var(--text-backup)"),
+          }}
+        >
+          {item?.[key] ?? "N/A"}
+          {unit && <span className="metric-unit"> {unit}</span>}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCardAQI = () => {
+    const aqiVal = item?.[DB_KEYS.AQI];
+    const aqiColor = getMetricColor(DB_KEYS.AQI, aqiVal);
+
+    const aqiAvg1h = dataHour?.[0]?.aqi_h;
+    const pm25Avg1h = dataHour?.[0]?.pm25_h.toFixed(0);
+
+    return (
+      <div
+        className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || activeMetric === "aqi1h" ? " active" : ""}`}
+      >
+        <div
+          className={`aqi-col aqi-col-left${activeMetric === "aqi1h" ? " active" : ""}`}
+          onClick={() => {
+            setActiveMetric("aqi1h");
+            setTimeRangeFor1H("24");
+          }}
+        >
+          <span className="aqi-col-label">AQI 1h</span>
+          <span
+            className="aqi-col-value"
+            style={{
+              color:
+                getMetricColor(DB_KEYS.AQI, aqiAvg1h) ?? "var(--text-backup)",
+            }}
+          >
+            {aqiAvg1h ?? "N/A"}
+          </span>
+          <span className="aqi-col-sub">
+            <span className="aqi-col-sub-label">PM2.5 1h</span>
+            <span
+              className="aqi-col-sub-value"
+              style={{
+                color:
+                  getMetricColor(DB_KEYS.PM2_5, pm25Avg1h) ??
+                  "var(--text-backup)",
+              }}
+            >
+              {pm25Avg1h ?? "N/A"}{" "}
+              <span
+                style={{
+                  color: "var(--muted)",
+                  fontWeight: "normal",
+                }}
+              >
+                µg/m³
+              </span>
+            </span>
+          </span>
+        </div>
+
+        <div
+          className={`aqi-col aqi-col-right${activeMetric === DB_KEYS.AQI ? " active" : ""}`}
+          onClick={() => {
+            setActiveMetric(DB_KEYS.AQI);
+          }}
+        >
+          <span className="aqi-col-label">Realtime</span>
+          <span
+            className="aqi-col-value"
+            style={{ color: aqiColor ?? "var(--text-backup)" }}
+          >
+            {aqiVal ?? "N/A"}
+          </span>
+          <span className="aqi-col-unit">AQI</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="detail">
+      <ThemeButton theme={theme} onToggleTheme={onToggleTheme} />
       <div
         className={`realtime-dot realtime-dot--${realtimeStatus}`}
         title={`Realtime: ${realtimeStatus}`}
@@ -247,98 +357,6 @@ function RoomDetail({ roomId, item, onBack, realtimeStatus }) {
           (() => {
             const aqiMetric = METRICS.find((m) => m.key === DB_KEYS.AQI);
             const otherMetrics = METRICS.filter((m) => m.key !== DB_KEYS.AQI);
-
-            const renderCard = ({ key, label, unit, icon, iconBg }) => {
-              const color = getMetricColor(key, item?.[key]);
-              const isNull = item?.[key] == null;
-              return (
-                <div
-                  key={key}
-                  className={`metric-card clickable${activeMetric === key ? " active" : ""}`}
-                  onClick={() => setActiveMetric(key)}
-                >
-                  <div className="metric-card-top">
-                    <span
-                      className="metric-icon"
-                      style={{ background: iconBg }}
-                    >
-                      <FontAwesomeIcon icon={icon} />
-                    </span>
-                    <span className="metric-label">{label}</span>
-                  </div>
-                  <div
-                    className="metric-value"
-                    style={{ color: isNull ? "#444" : (color ?? "#444") }}
-                  >
-                    {item?.[key] ?? "N/A"}
-                    {unit && <span className="metric-unit"> {unit}</span>}
-                  </div>
-                </div>
-              );
-            };
-
-            const renderCardAQI = () => {
-              const aqiVal = item?.[DB_KEYS.AQI];
-              const aqiColor = getMetricColor(DB_KEYS.AQI, aqiVal);
-
-              const aqiAvg1h = dataHour?.[0]?.aqi_h;
-              const pm25Avg1h = dataHour?.[0]?.pm25_h.toFixed(0);
-
-              return (
-                <div
-                  className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || activeMetric === "aqi1h" ? " active" : ""}`}
-                >
-                  <div
-                    className={`aqi-col aqi-col-left${activeMetric === "aqi1h" ? " active" : ""}`}
-                    onClick={() => {
-                      setActiveMetric("aqi1h");
-                      setTimeRangeFor1H("24");
-                    }}
-                  >
-                    <span className="aqi-col-label">AQI 1h</span>
-                    <span
-                      className="aqi-col-value"
-                      style={{
-                        color: getMetricColor(DB_KEYS.AQI, aqiAvg1h) ?? "#444",
-                      }}
-                    >
-                      {aqiAvg1h ?? "N/A"}
-                    </span>
-                    <span className="aqi-col-sub">
-                      <span className="aqi-col-sub-label">PM2.5 1h</span>
-                      <span
-                        className="aqi-col-sub-value"
-                        style={{
-                          color:
-                            getMetricColor(DB_KEYS.PM2_5, pm25Avg1h) ?? "#444",
-                        }}
-                      >
-                        {pm25Avg1h ?? "N/A"}{" "}
-                        <span style={{ color: "#ccc", fontWeight: "normal" }}>
-                          µg/m³
-                        </span>
-                      </span>
-                    </span>
-                  </div>
-
-                  <div
-                    className={`aqi-col aqi-col-right${activeMetric === DB_KEYS.AQI ? " active" : ""}`}
-                    onClick={() => {
-                      setActiveMetric(DB_KEYS.AQI);
-                    }}
-                  >
-                    <span className="aqi-col-label">Realtime</span>
-                    <span
-                      className="aqi-col-value"
-                      style={{ color: aqiColor ?? "#444" }}
-                    >
-                      {aqiVal ?? "N/A"}
-                    </span>
-                    <span className="aqi-col-unit">AQI</span>
-                  </div>
-                </div>
-              );
-            };
 
             return (
               <>
