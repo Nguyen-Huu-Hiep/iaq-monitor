@@ -84,7 +84,7 @@ function RoomDetail({ roomId, item, onBack }) {
         .from(TABLES.HOURLY_TABLE)
         .select("*")
         .eq("room_id", roomId)
-        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .range(from, from + pageSize - 1);
 
       if (error) {
@@ -115,7 +115,9 @@ function RoomDetail({ roomId, item, onBack }) {
     const all = dataHour ?? [];
     // eslint-disable-next-line react-hooks/purity
     const cutoff = new Date(Date.now() - hoursFor1H * 60 * 60 * 1000);
-    return all?.filter((d) => new Date(d.created_at) >= cutoff);
+    return (
+      all?.filter((d) => new Date(d.created_at) >= cutoff)?.reverse() ?? []
+    );
   })();
 
   const labels =
