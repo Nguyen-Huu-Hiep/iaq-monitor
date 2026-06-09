@@ -8,7 +8,20 @@ const RoomCard = ({ roomId, items, setSelectedRoom }) => {
   const color = getAqiColor(latestAqi, items?.[DB_KEYS.IN_ACTIVE]);
 
   return (
-    <div className="room-card" onClick={() => setSelectedRoom(roomId)}>
+    <div
+      className="room-card"
+      onPointerUp={(e) => {
+        if (e.pointerType === "touch") {
+          requestAnimationFrame(() => {
+            setSelectedRoom(roomId);
+          });
+          return;
+        }
+
+        // mouse desktop
+        setSelectedRoom(roomId);
+      }}
+    >
       <div className="room-card-top">
         <div className="room-card-header">
           <span

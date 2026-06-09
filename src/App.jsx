@@ -18,6 +18,7 @@ function App() {
     if (selectedRoom) {
       return (
         <RoomDetail
+          key={selectedRoom}
           roomId={selectedRoom}
           item={dataByRoom[selectedRoom] ?? null}
           onBack={() => setSelectedRoom(null)}
@@ -68,11 +69,7 @@ function App() {
                       key={roomId}
                       roomId={roomId}
                       items={items}
-                      setSelectedRoom={(v) => {
-                        setTimeout(() => {
-                          setSelectedRoom(v);
-                        }, 0);
-                      }}
+                      setSelectedRoom={setSelectedRoom}
                       onSaveSuccess={refetch}
                     />
                   );
