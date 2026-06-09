@@ -1,4 +1,10 @@
 import {
+  faBoxOpen,
+  faHouse,
+  faRotateRight,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
   CategoryScale,
   Chart as ChartJS,
   Filler,
@@ -7,21 +13,15 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
+import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faRotateRight,
-  faBoxOpen,
-  faHouse,
-} from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import ErrorState from "./components/ErrorState";
+import { DB_KEYS, TABLES } from "./config";
+import { supabase } from "./supabase";
 import useChartData from "./useChartData";
 import { useQueryParam } from "./useQueryParam";
 import { formatDate, getMetricColor, METRICS } from "./utils";
-import { DB_KEYS, TABLES } from "./config";
-import { useEffect, useState } from "react";
-import { supabase } from "./supabase";
 
 ChartJS.register(
   CategoryScale,
@@ -51,7 +51,12 @@ function RoomDetail({ roomId, item, onBack }) {
     replace: true,
   });
 
+  const [timeRangeFor1H, setTimeRangeFor1H] = useQueryParam("range1h", "24", {
+    replace: true,
+  });
+
   const hours = parseInt(timeRange, 10) || 1;
+  const hoursFor1H = parseInt(timeRangeFor1H, 10) || 24;
   const {
     data: chartItems,
     loading,
@@ -64,40 +69,53 @@ function RoomDetail({ roomId, item, onBack }) {
     ready: item != null && activeMetric != "aqi1h",
   });
 
-  const [dataHour, setDataHour] = useState({});
+  const [dataHour, setDataHour] = useState([]);
   const [fetching, setFetching] = useState(true);
 
   const loadHourData = async () => {
     setFetching(true);
-    const { data } = await supabase.from(TABLES.HOURLY_TABLE).select("*");
-    const grouped = (data ?? []).reduce((acc, row) => {
-      const id = row.room_id;
-      if (!acc[id]) acc[id] = [];
-      acc[id].push(row);
-      return acc;
-    }, {});
 
-    for (const id of Object.keys(grouped)) {
-      const latest = grouped[id].reduce((a, b) =>
-        new Date(a.updated_at) > new Date(b.updated_at) ? a : b,
-      );
-      grouped[id].displayAQI = latest.aqi_h;
-      grouped[id].displayPM25 = latest.pm25_h.toFixed(0);
+    const pageSize = 1000;
+    let from = 0;
+    let allData = [];
+
+    while (true) {
+      const { data, error } = await supabase
+        .from(TABLES.HOURLY_TABLE)
+        .select("*")
+        .eq("room_id", roomId)
+        .order("updated_at", { ascending: false })
+        .range(from, from + pageSize - 1);
+
+      if (error) {
+        break;
+      }
+
+      if (!data?.length) break;
+
+      allData.push(...data);
+
+      if (data.length < pageSize) break;
+
+      from += pageSize;
     }
+
+    setDataHour(allData);
     setFetching(false);
-    setDataHour(grouped);
   };
 
   useEffect(() => {
     if (roomId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadHourData();
     }
   }, [roomId]);
 
   const hourlyItems = (() => {
-    const all = dataHour?.[roomId] ?? [];
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return all.filter((d) => new Date(d.created_at) >= cutoff);
+    const all = dataHour ?? [];
+    // eslint-disable-next-line react-hooks/purity
+    const cutoff = new Date(Date.now() - hoursFor1H * 60 * 60 * 1000);
+    return all?.filter((d) => new Date(d.created_at) >= cutoff);
   })();
 
   const labels =
@@ -146,17 +164,7 @@ function RoomDetail({ roomId, item, onBack }) {
 
   function renderChart() {
     switch (true) {
-      case inActive:
-        return (
-          <div className="no-data">
-            <div className="no-data-icon">
-              <FontAwesomeIcon icon={faBoxOpen} />
-            </div>
-            <div>No data to show!</div>
-          </div>
-        );
       case loading || fetching:
-      case item == null:
         return (
           <div className="chart-loading">
             <div className="chart-skeleton-bars">
@@ -171,6 +179,17 @@ function RoomDetail({ roomId, item, onBack }) {
               ))}
             </div>
             <div className="chart-skeleton-axis" />
+          </div>
+        );
+      case inActive:
+      case values?.every((v) => v == null):
+      case item == null:
+        return (
+          <div className="no-data">
+            <div className="no-data-icon">
+              <FontAwesomeIcon icon={faBoxOpen} />
+            </div>
+            <div>No data to show!</div>
           </div>
         );
       case chartError:
@@ -188,6 +207,7 @@ function RoomDetail({ roomId, item, onBack }) {
           onBack();
           setActiveMetric(null);
           setTimeRange(null);
+          setTimeRangeFor1H(null);
         }}
       >
         <FontAwesomeIcon icon={faHouse} />
@@ -196,18 +216,11 @@ function RoomDetail({ roomId, item, onBack }) {
         <h2>{item?.status || `Phòng ${roomId}`}</h2>
       </div>
       <div className="detail-time">
-        {item?.displayTime ? (
-          formatDate(item?.displayTime, { seconds: true })
-        ) : (
-          <div
-            style={{ width: "100px" }}
-            className="skeleton-line skeleton-label"
-          />
-        )}
+        {formatDate(item?.displayTime, { seconds: true })}
       </div>
 
       <div className="metric-grid">
-        {item == null ? (
+        {loading && item === null ? (
           <>
             <div className="metric-row-aqi">
               <div className="metric-card aqi-card room-card-skeleton">
@@ -252,9 +265,7 @@ function RoomDetail({ roomId, item, onBack }) {
                     style={{ color: isNull ? "#444" : (color ?? "#444") }}
                   >
                     {item?.[key] ?? "N/A"}
-                    {item?.[key] != null && unit && (
-                      <span className="metric-unit"> {unit}</span>
-                    )}
+                    {unit && <span className="metric-unit"> {unit}</span>}
                   </div>
                 </div>
               );
@@ -264,16 +275,19 @@ function RoomDetail({ roomId, item, onBack }) {
               const aqiVal = item?.[DB_KEYS.AQI];
               const aqiColor = getMetricColor(DB_KEYS.AQI, aqiVal);
 
-              const aqiAvg1h = dataHour?.[roomId]?.displayAQI;
-              const pm25Avg1h = dataHour?.[roomId]?.displayPM25;
+              const aqiAvg1h = dataHour?.[0]?.aqi_h;
+              const pm25Avg1h = dataHour?.[0]?.pm25_h.toFixed(0);
 
               return (
                 <div
                   className={`metric-card aqi-card clickable${activeMetric === DB_KEYS.AQI || activeMetric === "aqi1h" ? " active" : ""}`}
                 >
                   <div
-                    className="aqi-col aqi-col-left"
-                    onClick={() => setActiveMetric("aqi1h")}
+                    className={`aqi-col aqi-col-left${activeMetric === "aqi1h" ? " active" : ""}`}
+                    onClick={() => {
+                      setActiveMetric("aqi1h");
+                      setTimeRangeFor1H("24");
+                    }}
                   >
                     <span className="aqi-col-label">AQI 1h</span>
                     <span
@@ -302,8 +316,10 @@ function RoomDetail({ roomId, item, onBack }) {
                   </div>
 
                   <div
-                    className="aqi-col aqi-col-right"
-                    onClick={() => setActiveMetric(DB_KEYS.AQI)}
+                    className={`aqi-col aqi-col-right${activeMetric === DB_KEYS.AQI ? " active" : ""}`}
+                    onClick={() => {
+                      setActiveMetric(DB_KEYS.AQI);
+                    }}
                   >
                     <span className="aqi-col-label">Realtime</span>
                     <span
@@ -312,6 +328,7 @@ function RoomDetail({ roomId, item, onBack }) {
                     >
                       {aqiVal ?? "N/A"}
                     </span>
+                    <span className="aqi-col-unit">AQI</span>
                   </div>
                 </div>
               );
@@ -339,11 +356,19 @@ function RoomDetail({ roomId, item, onBack }) {
               : `${metricMeta?.label}${metricMeta?.unit ? ` ${metricMeta?.unit}` : ""}`}
           </div>
           <div className="time-range-selector">
-            {TIME_RANGES.map(({ label, hours: h }) => (
+            {TIME_RANGES.filter(
+              ({ hours }) => !(activeMetric === "aqi1h" && hours === 1),
+            ).map(({ label, hours }) => (
               <button
                 key={label}
-                className={`time-range-btn${hours === h ? " active" : ""}`}
-                onClick={() => setTimeRange(String(h))}
+                className={`time-range-btn${(activeMetric === "aqi1h" ? timeRangeFor1H : timeRange) === String(hours) ? " active" : ""}`}
+                onClick={() => {
+                  if (activeMetric === "aqi1h") {
+                    setTimeRangeFor1H(String(hours));
+                  } else {
+                    setTimeRange(String(hours));
+                  }
+                }}
               >
                 {label}
               </button>

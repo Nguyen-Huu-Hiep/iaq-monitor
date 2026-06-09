@@ -294,14 +294,18 @@
 /* AQI card — 2 cột layout */
 .aqi-card {
     display: flex;
-    gap: 16px;
-    padding: 16px 20px;
+    gap: 8px;
+    padding: 8px !important;
 }
 
 .aqi-col {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 4px 16px;
+    transition: border-color 0.1s ease;
 }
 
 .aqi-col-left {
@@ -309,8 +313,14 @@
 }
 
 .aqi-col-right {
-    text-align: right;
-    min-width: 80px;
+    text-align: center;
+}
+
+.aqi-col.aqi-col-left:hover,
+.aqi-col.aqi-col-right:hover,
+.aqi-col.aqi-col-left.active,
+.aqi-col.aqi-col-right.active {
+    border: 2px solid #505050;
 }
 
 .aqi-col-label {
@@ -349,6 +359,15 @@
     font-weight: 700;
 }
 
+.aqi-col-unit {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: #ccc;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
 /* Other metrics row — 1 hàng trên desktop, grid 4 cột trên tablet, 3 cột trên mobile */
 .metric-row-others {
     display: grid;
@@ -362,7 +381,7 @@
 
 .metric-card {
     background: #1e1e2e;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 12px 16px;
     min-width: 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -430,11 +449,11 @@
 }
 
 .metric-card.clickable:hover {
-    border: 2px solid #003cff;
+    border: 2px solid #4f9cf9;
 }
 
 .metric-card.active {
-    border: 2px solid #003cff;
+    border: 2px solid #4f9cf9;
 }
 
 /* ── Responsive breakpoints ── */
@@ -697,6 +716,8 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    width: 100%;
+    max-width: 250px;
 }
 
 .room-card-skeleton:hover {

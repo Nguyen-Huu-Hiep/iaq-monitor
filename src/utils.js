@@ -4,7 +4,7 @@
 export function formatDate(isoString, options = {}) {
   const { seconds = false, compact = false, shortYear = false } = options;
 
-  if (!isoString) return "—";
+  if (!isoString) return "N/A";
   const d = new Date(isoString);
 
   const pad2 = (n) => String(n).padStart(2, "0");
