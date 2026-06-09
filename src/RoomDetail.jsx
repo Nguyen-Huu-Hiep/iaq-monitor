@@ -33,7 +33,7 @@ ChartJS.register(
 );
 
 const TIME_RANGES = [
-  { label: "1h", hours: 1 },
+  { label: "1 hour", hours: 1 },
   { label: "1 day", hours: 24 },
   { label: "1 week", hours: 168 },
 ];
