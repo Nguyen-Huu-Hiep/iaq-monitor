@@ -1,19 +1,9 @@
-import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import { DB_KEYS, TABLES } from "../config";
 import "../App.css";
+import { DB_KEYS } from "../config";
 import { getApiStatusIcon, getAqiColor } from "../utils";
-import Modal from "./Modal";
-import { supabase } from "../supabase";
 
-const RoomCard = ({
-  roomId,
-  items,
-  setSelectedRoom,
-  onSaveSuccess,
-  allowEdit,
-}) => {
+const RoomCard = ({ roomId, items, setSelectedRoom }) => {
   const latestAqi = items?.[DB_KEYS.AQI] ?? null;
   const color = getAqiColor(latestAqi, items?.[DB_KEYS.IN_ACTIVE]);
 

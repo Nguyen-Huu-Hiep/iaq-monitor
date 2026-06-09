@@ -232,7 +232,7 @@ function RoomDetail({ roomId, item, onBack }) {
             </div>
             <div className="metric-row-others">
               {Array.from({ length: METRICS.length - 1 }, (_, i) => (
-                <div key={i} className="room-card room-card-skeleton">
+                <div key={i} className="metric-card room-card-skeleton">
                   <div className="skeleton-line skeleton-title" />
                   <div className="skeleton-line skeleton-value" />
                 </div>
