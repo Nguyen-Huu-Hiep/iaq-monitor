@@ -69,6 +69,14 @@ function RoomDetail({ roomId, item, onBack }) {
     ready: item != null && activeMetric != "aqi1h",
   });
 
+  useEffect(() => {
+    setTimeout(() => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }, 0);
+  }, []);
+
   const [dataHour, setDataHour] = useState([]);
   const [fetching, setFetching] = useState(true);
 
