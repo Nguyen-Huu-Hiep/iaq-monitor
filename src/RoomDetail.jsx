@@ -166,7 +166,7 @@ function RoomDetail({ roomId, item, onBack }) {
 
   function renderChart() {
     switch (true) {
-      case loading || fetching:
+      case loading || (activeMetric === "aqi1h" && fetching):
         return (
           <div className="chart-loading">
             <div className="chart-skeleton-bars">
