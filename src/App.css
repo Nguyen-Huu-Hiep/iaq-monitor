@@ -25,13 +25,10 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    border: 1px solid var(--border);
     background: var(--button-bg);
     color: var(--text);
     font-size: 1.1rem;
     cursor: pointer;
-    transition: "background" 0.2s ease, color 0.2s ease;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .theme-toggle:hover {
@@ -441,7 +438,7 @@
 .metric-value {
     font-size: 1.8rem;
     font-weight: 700;
-    transition: color 0.3s ease;
+    /* transition: color 0.3s ease; */
 }
 
 .metric-unit {
