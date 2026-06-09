@@ -224,6 +224,7 @@
 
 /* Detail view */
 .detail {
+    position: relative;
     max-width: 1280px;
     margin: 0 auto;
     display: flex;

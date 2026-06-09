@@ -38,7 +38,7 @@ const TIME_RANGES = [
   { label: "1 week", hours: 168 },
 ];
 
-function RoomDetail({ roomId, item, onBack }) {
+function RoomDetail({ roomId, item, onBack, realtimeStatus }) {
   const inActive = item?.[DB_KEYS.IN_ACTIVE];
   const [activeMetric, setActiveMetric] = useQueryParam(
     "details",
@@ -203,6 +203,10 @@ function RoomDetail({ roomId, item, onBack }) {
 
   return (
     <div className="detail">
+      <div
+        className={`realtime-dot realtime-dot--${realtimeStatus}`}
+        title={`Realtime: ${realtimeStatus}`}
+      />
       <button
         className="back-btn"
         onClick={() => {

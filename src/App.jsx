@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import "./App.css";
 import ErrorState from "./components/ErrorState";
 import RoomCard from "./components/RoomCard";
@@ -11,74 +12,26 @@ import useSensorData from "./useSensorData";
 function App() {
   const { dataByRoom, refetch, loading, error, statusMsg, realtimeStatus } =
     useSensorData();
+
   const [selectedRoom, setSelectedRoom] = useQueryParam("room");
+
   const { visible, fading } = usePullToRefresh(refetch);
 
-  function renderContent() {
-    if (selectedRoom) {
-      return (
-        <RoomDetail
-          key={selectedRoom}
-          roomId={selectedRoom}
-          item={dataByRoom[selectedRoom] ?? null}
-          onBack={() => setSelectedRoom(null)}
-        />
-      );
-    }
+  const sortedRooms = useMemo(() => {
+    return Object.entries(dataByRoom).sort(([roomIdA, a], [roomIdB, b]) => {
+      const aInactive = a?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
+      const bInactive = b?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
 
-    switch (true) {
-      case loading:
-        return (
-          <>
-            <Header realtimeStatus={realtimeStatus} />
-            <div className="card-grid">
-              {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="room-card room-card-skeleton">
-                  <div className="skeleton-line skeleton-title" />
-                  <div className="skeleton-line skeleton-label" />
-                  <div className="skeleton-line skeleton-value" />
-                </div>
-              ))}
-            </div>
-          </>
-        );
-      case error:
-        return (
-          <>
-            <Header realtimeStatus={realtimeStatus} />
-            <ErrorState onRetry={refetch} />
-          </>
-        );
-      default:
-        return (
-          <>
-            <Header realtimeStatus={realtimeStatus} />
-            <div className="card-grid">
-              {Object.entries(dataByRoom)
-                .sort(([roomIdA, a], [roomIdB, b]) => {
-                  const aInactive = a?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
-                  const bInactive = b?.[DB_KEYS.IN_ACTIVE] ? 1 : 0;
-                  if (aInactive !== bInactive) return aInactive - bInactive;
-                  const aZero = roomIdA === "0" ? 1 : 0;
-                  const bZero = roomIdB === "0" ? 1 : 0;
-                  return aZero - bZero;
-                })
-                .map(([roomId, items]) => {
-                  return (
-                    <RoomCard
-                      key={roomId}
-                      roomId={roomId}
-                      items={items}
-                      setSelectedRoom={setSelectedRoom}
-                      onSaveSuccess={refetch}
-                    />
-                  );
-                })}
-            </div>
-          </>
-        );
-    }
-  }
+      if (aInactive !== bInactive) {
+        return aInactive - bInactive;
+      }
+
+      const aZero = roomIdA === "0" ? 1 : 0;
+      const bZero = roomIdB === "0" ? 1 : 0;
+
+      return aZero - bZero;
+    });
+  }, [dataByRoom]);
 
   return (
     <div className="app">
@@ -87,8 +40,70 @@ function App() {
           ↓ Reload
         </div>
       )}
+
       {statusMsg && <div className="status-toast">{statusMsg}</div>}
-      {renderContent()}
+
+      {/* DASHBOARD */}
+      <div
+        style={{
+          display: selectedRoom ? "none" : "block",
+        }}
+      >
+        <Header realtimeStatus={realtimeStatus} />
+
+        {loading && (
+          <div className="card-grid">
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={i} className="room-card room-card-skeleton">
+                <div className="skeleton-line skeleton-title" />
+                <div className="skeleton-line skeleton-label" />
+                <div className="skeleton-line skeleton-value" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {error && !loading && <ErrorState onRetry={refetch} />}
+
+        {!loading && !error && (
+          <div className="card-grid">
+            {sortedRooms.map(([roomId, items]) => {
+              return (
+                <RoomCard
+                  key={roomId}
+                  roomId={roomId}
+                  items={items}
+                  onSaveSuccess={refetch}
+                  setSelectedRoom={(id) => {
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        setSelectedRoom(id);
+                      });
+                    });
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* DETAIL */}
+      <div
+        style={{
+          display: selectedRoom ? "block" : "none",
+        }}
+      >
+        {selectedRoom && (
+          <RoomDetail
+            key={selectedRoom}
+            roomId={selectedRoom}
+            item={dataByRoom[selectedRoom] ?? null}
+            realtimeStatus={realtimeStatus}
+            onBack={() => setSelectedRoom(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

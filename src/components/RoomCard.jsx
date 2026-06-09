@@ -10,15 +10,7 @@ const RoomCard = ({ roomId, items, setSelectedRoom }) => {
   return (
     <div
       className="room-card"
-      onPointerUp={(e) => {
-        if (e.pointerType === "touch") {
-          requestAnimationFrame(() => {
-            setSelectedRoom(roomId);
-          });
-          return;
-        }
-
-        // mouse desktop
+      onClick={() => {
         setSelectedRoom(roomId);
       }}
     >
