@@ -68,8 +68,8 @@ function App() {
                       key={roomId}
                       roomId={roomId}
                       items={items}
-                      setSelectedRoom={() => {
-                        setTimeout((v) => {
+                      setSelectedRoom={(v) => {
+                        setTimeout(() => {
                           setSelectedRoom(v);
                         }, 0);
                       }}
