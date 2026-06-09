@@ -68,7 +68,11 @@ function App() {
                       key={roomId}
                       roomId={roomId}
                       items={items}
-                      setSelectedRoom={setSelectedRoom}
+                      setSelectedRoom={() => {
+                        setTimeout((v) => {
+                          setSelectedRoom(v);
+                        }, 0);
+                      }}
                       onSaveSuccess={refetch}
                     />
                   );
