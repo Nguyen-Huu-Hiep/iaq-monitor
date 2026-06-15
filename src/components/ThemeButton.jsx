@@ -1,5 +1,5 @@
 import React from "react";
-import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faLightbulb } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const ThemeButton = ({ theme = "dark", onToggleTheme }) => {
@@ -16,7 +16,7 @@ const ThemeButton = ({ theme = "dark", onToggleTheme }) => {
           theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
         }
       >
-        <FontAwesomeIcon icon={theme === "dark" ? faSun : faMoon} />
+        <FontAwesomeIcon icon={theme === "dark" ? faLightbulb : faMoon} />
       </button>
     </div>
   );

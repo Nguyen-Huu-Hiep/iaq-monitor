@@ -349,7 +349,7 @@
     font-size: 0.75rem;
     color: var(--muted);
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: bold;
     letter-spacing: 0.5px;
 }
 

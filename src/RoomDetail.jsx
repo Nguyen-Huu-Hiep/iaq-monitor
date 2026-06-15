@@ -13,7 +13,7 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import "./App.css";
 import ErrorState from "./components/ErrorState";
@@ -79,6 +79,7 @@ function RoomDetail({
 
   const [dataHour, setDataHour] = useState([]);
   const [fetching, setFetching] = useState(true);
+  const hourlyChannelRef = useRef(null);
 
   const loadHourData = async () => {
     setFetching(true);
@@ -113,10 +114,50 @@ function RoomDetail({
   };
 
   useEffect(() => {
-    if (roomId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      loadHourData();
-    }
+    if (!roomId) return;
+
+    const subscribeHourly = () => {
+      if (hourlyChannelRef.current) {
+        supabase.removeChannel(hourlyChannelRef.current);
+        hourlyChannelRef.current = null;
+      }
+
+      hourlyChannelRef.current = supabase
+        .channel(`hourly-room-${roomId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: TABLES.HOURLY_TABLE,
+            filter: `room_id=eq.${roomId}`,
+          },
+          (payload) => {
+            const newRow = payload.new;
+            setDataHour((prev) => {
+              return [newRow, ...prev];
+            });
+          },
+        )
+        .subscribe((status) => {
+          console.log("🚀 ~ subscribeHourly ~ status:", status);
+        });
+    };
+
+    const initializeHourly = async () => {
+      await loadHourData();
+      subscribeHourly();
+    };
+
+    initializeHourly();
+
+    return () => {
+      if (hourlyChannelRef.current) {
+        supabase.removeChannel(hourlyChannelRef.current);
+        hourlyChannelRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   const hourlyItems = (() => {
@@ -255,7 +296,6 @@ function RoomDetail({
           className={`aqi-col aqi-col-left${activeMetric === "aqi1h" ? " active" : ""}`}
           onClick={() => {
             setActiveMetric("aqi1h");
-            setTimeRangeFor1H("24");
           }}
         >
           <span className="aqi-col-label">AQI 1h</span>
